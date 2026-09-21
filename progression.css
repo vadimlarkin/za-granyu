@@ -1,0 +1,13 @@
+#adventure-progress{margin:6px 0;color:#ccb88d;font:11px/1.4 system-ui;letter-spacing:.2px}
+#reward-progress{color:#dec596;font:14px/1.4 system-ui}
+#reward .pending-reward{outline:3px solid #eec879;outline-offset:5px;box-shadow:0 0 24px #d4ab5555}
+#reward #skip-reward[aria-pressed="true"]{outline:2px solid #eec879;outline-offset:3px}
+#confirm-reward,#confirm-perk{display:block;margin:18px auto;padding:12px 22px;min-height:46px;color:#19241f;background:#dfc189;border:1px solid #b49361;border-radius:5px}
+#confirm-reward:disabled,#confirm-perk:disabled{opacity:.45;cursor:default}
+#confirm-reward[hidden],#perk-choice[hidden]{display:none}
+#perk-choice{border-top:1px solid #77684e;margin-top:20px;padding-top:12px}
+#perk-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;text-align:left}
+#perk-options .perk-option{padding:14px;background:#101d20;border:1px solid #6e684f;border-radius:6px;color:#e8dfc9;text-align:left;min-height:104px}
+.perk-option strong,.perk-option span{display:block}.perk-option strong{font:18px Georgia;margin-bottom:8px}.perk-option span{font:12px/1.45 system-ui}
+#perk-options .perk-option[aria-pressed="true"]{border:2px solid #eec879;background:#28352c}
+@media(max-width:520px){#perk-options{grid-template-columns:1fr}#adventure-progress{max-width:160px;font-size:10px}}

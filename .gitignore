@@ -1,0 +1,14 @@
+.DS_Store
+._*
+.backups/
+outputs/
+design/
+*.xlsx
+*.xls
+~$*
+.env
+.env.*
+node_modules/
+dist/
+
+BACKLOG.md

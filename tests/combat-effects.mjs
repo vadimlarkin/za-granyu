@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createGame,play,endTurn} from '../engine.mjs';
+import {parseCardsMarkdown} from '../catalog.mjs';
+const catalog=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8'));
+function game(effect){const s=createGame(1,5,()=>.5,catalog);s.cards.test={name:'Test',effect,amount:3,cost:0,color:'red'};s.hand=[{id:'test',key:'test'}];return s;}
+let s=game('physical');s.enemy.armor=1;play(s,'test',[]);assert.equal(s.enemy.hp,8);assert.deepEqual(s.events,[{target:'foe',kind:'block',amount:1},{target:'foe',kind:'damage',amount:2}]);
+s=game('physical');s.enemy.hp=1;play(s,'test',[]);assert.equal(s.events[0].amount,1);assert.equal(s.status,'won');
+s=game('heal');s.hp=9;play(s,'test',[]);assert.deepEqual(s.events,[{target:'hero',kind:'heal',amount:1}]);
+s=game('heal');play(s,'test',[]);assert.deepEqual(s.events,[]);
+s=game('physical');s.enemy.dodge=1;play(s,'test',[]);assert.equal(s.enemy.hp,10);assert.equal(s.events[0].kind,'dodge');
+s=game('physical');s.enemy.cards.test={name:'Test',effect:'physical',amount:3,cost:0,color:'red'};s.enemy.deck=[];s.enemy.discard=[];s.enemy.hand=[{id:'e1',key:'test'},{id:'e2',key:'test'}];endTurn(s,()=>.5);assert.equal(s.hp,4);assert.equal(s.events.filter(e=>e.target==='hero'&&e.kind==='damage').length,2);
+console.log('PASS: damage, block, overkill, capped healing, zero healing, dodge, separate enemy impacts');
+const {enemyTurn}=await import('../engine.mjs');
+s=game('physical');s.enemy.cards.test={name:'Test',effect:'physical',amount:3,cost:0,color:'red'};s.enemy.deck=[];s.enemy.discard=[];s.enemy.hand=[{id:'e1',key:'test'},{id:'e2',key:'test'}];
+const turn=enemyTurn(s,()=>.5);
+assert.equal(turn.next().value.phase,'reveal');assert.equal(s.hp,10);
+assert.equal(turn.next().value.phase,'effect');assert.equal(s.hp,7);
+assert.equal(turn.next().value.phase,'reveal');assert.equal(s.hp,7);
+assert.equal(turn.next().value.phase,'effect');assert.equal(s.hp,4);
+assert.equal(turn.next().done,true);assert.equal(s.turn,2);
+s=game('physical');s.hp=1;s.enemy.cards.test={name:'Test',effect:'physical',amount:3,cost:0,color:'red'};s.enemy.deck=[];s.enemy.discard=[];s.enemy.hand=[{id:'e1',key:'test'},{id:'e2',key:'test'}];
+assert.deepEqual([...enemyTurn(s)].map(step=>step.phase),['reveal','effect']);assert.equal(s.status,'lost');
+console.log('PASS: reveal precedes damage, one effect per card, next turn waits, lethal action stops sequence');

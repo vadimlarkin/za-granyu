@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {parseCardsMarkdown} from '../catalog.mjs';
+import {createReward,skipReward,claimReward,rewardResolved,starterDeck} from '../rewards.mjs';
+import {createGame,limit,endTurn} from '../engine.mjs';
+const cards=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8'));
+const collection=starterDeck(cards),reward=createReward(cards);
+assert.equal(rewardResolved(reward),false);skipReward(reward);assert.equal(rewardResolved(reward),true);
+assert.throws(()=>skipReward(reward));assert.throws(()=>claimReward(collection,reward,reward.choices[0]));assert.equal(collection.length,10);
+const picked=createReward(cards);claimReward(collection,picked,picked.choices[0]);assert.throws(()=>skipReward(picked));
+const s=createGame(1,5,()=>.5,cards,null,collection,1);assert.equal(s.hand.length,4);assert.equal(limit(s),4);assert.equal(s.deck.length,6);assert.equal(s.cap,6);assert.equal(limit(s.enemy),3);
+s.enemy.hand=[];s.enemy.deck=[];s.enemy.discard=[];endTurn(s,()=>.5);assert.equal(s.hand.length,5);assert.equal(limit(s),5);endTurn(s,()=>.5);assert.equal(limit(s),6);assert.equal(s.hand.length,6);endTurn(s,()=>.5);assert.equal(limit(s),6);assert.equal(s.hand.length,6);
+assert.equal(createGame(1,5,()=>.5,cards,null,collection).hand.length,3);
+console.log('PASS: skip and claim are exclusive, collection unchanged, 4/5/6 draw targets and increased cap for the entire battle');

@@ -1,0 +1,241 @@
+/* Approved combat design. Engine and debug view retain their existing behavior. */
+
+:root body[data-view="player"] *{box-sizing:border-box}
+:root body[data-view="player"]{margin:0;background:#080e12;color:#f2e4c8;font-family:Georgia,serif}
+:root body[data-view="player"] button{font:inherit;cursor:pointer}
+:root body[data-view="player"] button:focus-visible{outline:2px solid #ffe5aa;outline-offset:4px}
+:root body[data-view="player"] .table{position:relative;width:100%;height:100svh;min-height:640px;overflow:hidden;isolation:isolate;background:#111e24 url('assets/warehouse-background.png') center/cover}
+:root body[data-view="player"] .table:before{content:"";position:absolute;inset:0;background:linear-gradient(#04101755,transparent 28%,#06101422 55%,#071010ed);z-index:1;pointer-events:none}
+:root body[data-view="player"] .combatant-art{position:absolute;top:max(112px,10%);height:132%;width:auto;transform:translateX(-50%);pointer-events:none}
+:root body[data-view="player"] .hero-art{left:19%}
+:root body[data-view="player"] .enemy-art{left:81%}
+:root body[data-view="player"] .identity{position:absolute;top:24px;z-index:3;width:306px;padding:14px 18px 12px;border:1px solid #a18558;background:linear-gradient(130deg,#101b1ef5,#182429ee);box-shadow:inset 0 0 0 3px #0c1518,inset 0 0 0 4px #816c4444,0 6px 24px #0005}
+:root body[data-view="player"] .identity.hero-id{left:28px}
+:root body[data-view="player"] .identity.foe-id{right:28px}
+:root body[data-view="player"] .identity .name{font-size:23px;line-height:1.2;letter-spacing:.4px}
+:root body[data-view="player"] .identity .topline{display:flex;align-items:center;justify-content:space-between;gap:12px}
+:root body[data-view="player"] .life{white-space:nowrap;font-size:21px;font-weight:bold}
+:root body[data-view="player"] .life i{font-style:normal;color:#d99b8c;font-size:16px}
+:root body[data-view="player"] .life small{font-size:13px;color:#b7b29e}
+:root body[data-view="player"] .hp-track{margin:10px 0 9px;height:3px;background:#ab6e60;box-shadow:0 0 8px #cf897328}
+:root body[data-view="player"] .defenses{display:flex;gap:16px;font:12px/1.3 system-ui,sans-serif;color:#c6c9bd}
+:root body[data-view="player"] .defenses b{font-weight:500;color:#eee3c7}
+:root body[data-view="player"] .turn{position:absolute;z-index:4;top:25px;left:50%;transform:translateX(-50%);text-align:center}
+:root body[data-view="player"] .turn small{display:block;color:#a7b7b9;font:10px system-ui;letter-spacing:2px;margin-bottom:7px}
+:root body[data-view="player"] .turn strong{font:17px Georgia;letter-spacing:1px}
+:root body[data-view="player"] .turn span{display:block;margin-top:8px;color:#c5aa76;font:11px system-ui;letter-spacing:1px}
+:root body[data-view="player"] .table-glow{position:absolute;z-index:1;bottom:0;left:15%;right:15%;height:360px;background:radial-gradient(ellipse at bottom,#57757426,transparent 70%);pointer-events:none}
+:root body[data-view="player"] .hand-area{position:absolute;z-index:5;bottom:100px;left:0;width:100%}
+:root body[data-view="player"] .instruction{height:49px;margin:0 auto 12px;text-align:center;font:13px/1.5 system-ui;color:#ddd7c4;display:flex;align-items:center;justify-content:center;gap:12px}
+:root body[data-view="player"] .instruction .step{font-size:10px;letter-spacing:1.8px;color:#bda572}
+:root body[data-view="player"] .instruction strong{font-weight:500;color:#fae5b6}
+:root body[data-view="player"] .hand{display:flex;align-items:flex-end;justify-content:safe center;gap:14px;padding:28px 20px 14px;overflow-x:auto;scrollbar-width:none}
+:root body[data-view="player"] .card{--ink:#47292a;position:relative;flex:0 0 168px;width:168px;height:235px;padding:7px;border:1px solid #b79a65;border-radius:8px;background:var(--ink);color:#fff0cf;box-shadow:inset 0 0 0 3px #141d1d,inset 0 0 0 4px #9b8458,0 8px 20px #0008;text-align:center;transition:transform .2s,box-shadow .2s;transform:rotate(var(--angle,0deg));transform-origin:center bottom}
+:root body[data-view="player"] .card.green{--ink:#1d3933}
+:root body[data-view="player"] .card.blue{--ink:#193744}
+:root body[data-view="player"] .card:nth-child(1){--angle:-3deg}
+:root body[data-view="player"] .card:nth-child(3){--angle:3deg}
+:root body[data-view="player"] .card-art{position:relative;height:95px;border-radius:3px 3px 0 0;overflow:hidden;background:#10242a}
+:root body[data-view="player"] .card-art:before{content:"";position:absolute;left:0;top:50%;width:100%;aspect-ratio:1;transform:translateY(-50%);background:url('assets/card-art-atlas.png');background-size:500% 200%;background-position:var(--x) var(--y)}
+:root body[data-view="player"] .cost{position:absolute;z-index:2;top:10px;left:10px;width:31px;height:31px;border:1px solid #e3c68c;outline:2px solid #172226;border-radius:50%;display:grid;place-items:center;background:var(--ink);font:bold 22px Georgia}
+:root body[data-view="player"] .card-name{height:35px;margin:0 -1px;display:grid;place-items:center;padding:3px;background:linear-gradient(110deg,#c7ac7c,#ecdcb9,#cfb687);font:bold 13px/1.05 Georgia;color:#30271d}
+:root body[data-view="player"] .card-text{height:63px;margin:0;padding:8px 4px;font:13px/1.3 Georgia}
+:root body[data-view="player"] .card-text b{font-size:17px}
+:root body[data-view="player"] .card-state{height:20px;border-top:1px solid #af976955;padding:5px 1px 0;font:10px/1 system-ui;letter-spacing:.4px;color:#d1c8b3}
+:root body[data-view="player"] .card:hover{transform:translateY(-12px)}
+:root body[data-view="player"] .card.selected{transform:translateY(-22px);z-index:4;border-color:#f3d49a;box-shadow:inset 0 0 0 3px #182321,inset 0 0 0 4px #c5a578,0 0 0 2px #f3d49a,0 8px 24px #0009}
+:root body[data-view="player"] .card.selected .card-state{color:#ffe5a9}
+:root body[data-view="player"] .card.paying{transform:translateY(6px);filter:saturate(.4);outline:1px solid #b7c9c0}
+:root body[data-view="player"] .card.paying .card-state{color:#fff}
+:root body[data-view="player"] .actions{position:absolute;z-index:7;bottom:27px;left:50%;transform:translateX(-50%);display:flex;gap:12px;align-items:center}
+:root body[data-view="player"] .actions button{height:48px;min-width:180px;padding:0 24px;border-radius:4px;border:1px solid #c6a779;font:16px Georgia}
+:root body[data-view="player"] #play{background:linear-gradient(#e9c891,#b99a66);color:#1a231f;box-shadow:inset 0 0 0 3px #dec18e55,0 4px 14px #0005}
+:root body[data-view="player"] #play:disabled{color:#aaa794;background:#273330;border-color:#65746a;box-shadow:inset 0 0 0 3px #182322;cursor:default}
+:root body[data-view="player"] #end{background:#101d21de;color:#d7c7a4;border-color:#70684f!important}
+:root body[data-view="player"] .pile-counter{position:absolute;bottom:41px;z-index:3;font:12px system-ui;color:#93a7a8}
+:root body[data-view="player"] .pile-counter.pile-deck{left:30px}
+:root body[data-view="player"] .pile-counter.pile-discard{right:30px}
+:root body[data-view="player"] .pile-counter b{display:block;font:22px Georgia;color:#c5c6b3;margin-top:4px}
+:root body[data-view="player"] .cancel{border:0;background:none;color:#d0c1a2;font:12px system-ui;text-decoration:underline;text-underline-offset:3px}
+:root body[data-view="player"] .badge{display:inline-block;padding:3px 7px;border:1px solid #8e805c;color:#f2d79e;font-size:11px}
+:root body[data-view="player"] .only-selected{display:none}
+:root body[data-view="player"] .table.has-selection .only-selected{display:inline}
+:root body[data-view="player"] .table.has-selection .idle-instruction{display:none}
+@media(max-width:900px){
+:root body[data-view="player"] .table{min-height:640px}
+:root body[data-view="player"] .combatant-art{top:170px;height:auto;width:158vw}
+:root body[data-view="player"] .hero-art{left:14%}
+:root body[data-view="player"] .enemy-art{left:83%}
+:root body[data-view="player"] .identity{top:14px;width:calc(50% - 22px);padding:12px 12px 9px}
+:root body[data-view="player"] .identity.hero-id{left:14px}
+:root body[data-view="player"] .identity.foe-id{right:14px}
+:root body[data-view="player"] .identity .name{font-size:18px;min-height:42px;display:flex;align-items:center}
+:root body[data-view="player"] .identity .topline{display:block}
+:root body[data-view="player"] .life{font-size:21px;margin-top:5px}
+:root body[data-view="player"] .hp-track{margin:8px 0}
+:root body[data-view="player"] .defenses{gap:10px;font-size:11px}
+:root body[data-view="player"] .defenses .word{display:none}
+:root body[data-view="player"] .turn{top:149px}
+:root body[data-view="player"] .turn small{display:none}
+:root body[data-view="player"] .turn strong{font-size:13px}
+:root body[data-view="player"] .turn span{display:inline;margin-left:8px;font-size:11px}
+:root body[data-view="player"] .hand-area{bottom:98px}
+:root body[data-view="player"] .instruction{margin-bottom:0;height:58px;flex-wrap:wrap;gap:3px 8px;padding:0 24px;font-size:12px}
+:root body[data-view="player"] .instruction .step{width:100%}
+:root body[data-view="player"] .hand{gap:0;padding:26px 16px 14px}
+:root body[data-view="player"] .card+.card{margin-left:min(14px,calc((100vw - 32px - 504px) / 2))}
+:root body[data-view="player"] .card{--angle:0deg!important}
+:root body[data-view="player"] .card .card-text{font-size:13px}
+:root body[data-view="player"] .actions{bottom:29px;width:calc(100% - 32px);gap:10px}
+:root body[data-view="player"] .actions button{min-width:0;flex:1;padding:0 10px;font-size:15px}
+:root body[data-view="player"] .pile-counter{bottom:9px;font-size:10px}
+:root body[data-view="player"] .pile-counter b{display:inline;font:11px system-ui;margin-left:4px}
+:root body[data-view="player"] .pile-counter.pile-deck{left:20px}
+:root body[data-view="player"] .pile-counter.pile-discard{right:20px}}
+@media(prefers-reduced-motion:reduce){
+:root body[data-view="player"] *{transition:none!important}}/* Names and pictograms sit directly over the scene, without a panel. */
+:root body[data-view="player"] .identity{width:360px;padding:0;border:0;background:none;box-shadow:none;text-shadow:0 2px 4px #030a0e,0 0 16px #030a0e}
+:root body[data-view="player"] .identity .topline{display:contents}
+:root body[data-view="player"] .identity .name{font-size:36px;font-weight:700;line-height:1.1;letter-spacing:.2px;color:#f5e7c9}
+:root body[data-view="player"] .identity .life{display:inline-block;margin-top:12px;font-size:25px}
+:root body[data-view="player"] .identity .life i{font-size:21px}
+:root body[data-view="player"] .identity .life small{font-size:17px}
+:root body[data-view="player"] .defenses{display:inline-flex;vertical-align:baseline;gap:22px;margin:12px 0 0 22px;font-size:23px}
+:root body[data-view="player"] .stat{display:inline-flex;align-items:center;gap:7px}
+:root body[data-view="player"] .stat svg{width:26px;height:28px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 2px 3px #000)}
+:root body[data-view="player"] .stat.armor{color:#d8c59c}
+:root body[data-view="player"] .stat.ward{color:#b7d6e0}
+:root body[data-view="player"] .defenses b{font:700 23px Georgia;color:#eee3c7}
+:root body[data-view="player"] .foe-id{text-align:right}
+@media(max-width:900px){
+:root body[data-view="player"] .identity{width:calc(50% - 28px);padding:0;top:18px}
+:root body[data-view="player"] .identity .name{font-size:27px;line-height:1.08;min-height:59px;display:block}
+:root body[data-view="player"] .identity .life{font-size:24px;margin-top:9px}
+:root body[data-view="player"] .identity .life small{font-size:15px}
+:root body[data-view="player"] .defenses{display:flex;gap:20px;margin:11px 0 0;font-size:21px}
+:root body[data-view="player"] .foe-id .defenses{justify-content:flex-end}
+:root body[data-view="player"] .stat svg{width:25px;height:27px}
+:root body[data-view="player"] .defenses b{font-size:22px}
+:root body[data-view="player"] .turn{top:158px}
+}/* Health and defenses share one numeric baseline below the health bar. */
+:root body[data-view="player"] .health-track{height:7px;margin:12px 0 11px;background:#321a1cbb;border-radius:2px;overflow:hidden;box-shadow:0 2px 5px #0005}
+:root body[data-view="player"] .health-fill{display:block;height:100%;width:100%;background:linear-gradient(90deg,#a52f39,#df5d58);transition:width .6s ease;border-radius:inherit}
+:root body[data-view="player"] .stat-row{display:flex;align-items:center;gap:24px;min-height:28px}
+:root body[data-view="player"] .foe-id .stat-row{justify-content:flex-end}
+:root body[data-view="player"] .identity .life{display:flex;align-items:center;gap:5px;margin:0;font:700 24px/1 Georgia;white-space:nowrap;font-variant-numeric:lining-nums tabular-nums}
+:root body[data-view="player"] .identity .life i{font-size:20px}
+:root body[data-view="player"] .hp-max{font:inherit;color:#d6cbb4}
+:root body[data-view="player"] .stat-row .defenses{display:flex;align-items:center;gap:22px;margin:0}
+:root body[data-view="player"] .stat-row .stat{gap:7px;align-items:center}
+:root body[data-view="player"] .stat-row .defenses b{font:700 24px/1 Georgia;font-variant-numeric:lining-nums tabular-nums}
+@media(max-width:900px){
+:root body[data-view="player"] .health-track{margin:10px 0;height:6px}
+:root body[data-view="player"] .stat-row{gap:10px;justify-content:space-between;min-height:24px}
+:root body[data-view="player"] .foe-id .stat-row{justify-content:space-between}
+:root body[data-view="player"] .identity .life,:root body[data-view="player"] .stat-row .defenses b{font-size:18px;line-height:1}
+:root body[data-view="player"] .identity .life{gap:3px}
+:root body[data-view="player"] .identity .life i{font-size:14px}
+:root body[data-view="player"] .stat-row .defenses{gap:9px}
+:root body[data-view="player"] .stat-row .stat{gap:4px}
+:root body[data-view="player"] .stat-row .stat svg{width:20px;height:23px}
+}/* Mirrored read order: health — steel — magic | magic — steel — health. */
+:root body[data-view="player"] .foe-id .stat-row{flex-direction:row-reverse;justify-content:flex-start}
+:root body[data-view="player"] .foe-id .health-fill{margin-left:auto}
+:root body[data-view="player"] .foe-hand{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:5px;min-height:25px;margin-top:10px;pointer-events:auto}
+:root body[data-view="player"] .foe-hand-card{position:relative;display:block;flex:0 0 18px;height:25px;border:1px solid #d4ba83;border-radius:3px;background:repeating-linear-gradient(45deg,#c2a77718 0 1px,transparent 1px 4px),#192c36;box-shadow:inset 0 0 0 2px #192c36,0 2px 4px #0009}
+:root body[data-view="player"] .foe-hand-card:after{content:"";position:absolute;width:5px;height:5px;left:5px;top:8px;border:1px solid #dcc394;transform:rotate(45deg);background:#233c47}
+:root body[data-view="player"] .foe-id .stat-row .defenses{flex-direction:row-reverse}
+:root body[data-view="player"] .stat.armor svg{stroke-width:1.1}
+:root body[data-view="player"] .stat.ward svg{width:28px;height:28px;filter:drop-shadow(0 0 3px #7aaec655)}
+@media(max-width:900px){
+:root body[data-view="player"] .stat-row .stat.ward svg{width:23px;height:23px}}/* Anchor each complete stat row to its own outside edge at every width. */
+:root body[data-view="player"] .hero-id .stat-row{justify-content:flex-start}
+:root body[data-view="player"] .foe-id .stat-row{justify-content:flex-start;flex-direction:row-reverse}
+
+/* Integration with the live game's existing containers and controls. */
+:root body[data-view="player"] .table{min-height:640px;--hand-bottom:100px}
+:root body[data-view="player"] .fighters{background-image:linear-gradient(#04101755,transparent 28%,#06101422 55%,#071010ed),var(--scene-image)}
+:root body[data-view="player"] .table::before{display:none}
+:root body[data-view="player"] .combatant-art{bottom:auto;max-width:none;object-fit:contain}
+:root body[data-view="player"] .hero-art{left:19%;right:auto}
+/* Enemies stand on the right and face the hero on the left. */
+:root body[data-view="player"] .enemy-art{left:81%;right:auto;transform:translateX(-50%)}
+:root body[data-view="player"] .table-top{display:block;top:25px;left:50%;width:auto;height:auto;transform:translateX(-50%);text-align:center;padding:0;margin:0;background:none;border:0;box-shadow:none}
+:root body[data-view="player"] #scene-name{display:block;color:#a7b7b9;font:10px system-ui;letter-spacing:2px;margin-bottom:7px}
+:root body[data-view="player"] #turn{display:block;padding:0;border:0;background:none;color:#f2e4c8;font:17px Georgia;letter-spacing:1px}
+:root body[data-view="player"] #turn-phase{display:block;margin-top:8px;color:#c5aa76;font:11px system-ui;letter-spacing:1px;text-transform:uppercase}
+:root body[data-view="player"] .hand-area{z-index:10;bottom:var(--hand-bottom)}
+:root body[data-view="player"] .hand{position:relative;inset:auto;transform:none;width:100%;max-width:none;min-height:0;margin:0;display:flex;flex-wrap:nowrap;gap:14px;padding:28px 20px 14px;justify-content:safe center;overflow-x:auto;background:none}
+:root body[data-view="player"] .hand .card{--card-width:168px;flex:0 0 168px;min-width:168px;max-width:168px;min-height:235px;max-height:235px;height:235px;width:168px;margin:0;padding:7px;gap:0;display:flex;flex-direction:column;transform:rotate(var(--angle,0deg))}
+:root body[data-view="player"] .hand .card.selected{transform:translateY(-22px);z-index:6}
+:root body[data-view="player"] .hand .card:hover:not(:disabled),:root body[data-view="player"] .hand .card:focus-visible{transform:translateY(-12px);z-index:5}
+:root body[data-view="player"] .hand .card.selected:hover{transform:translateY(-22px);z-index:6}
+:root body[data-view="player"] .hand .card.paying{transform:translateY(6px)}
+:root body[data-view="player"] .card .card-art{display:block;width:100%;height:95px;flex:0 0 95px;aspect-ratio:auto;background:none}
+:root body[data-view="player"] .card .card-art::before{background-position:var(--art-x) var(--art-y)}
+:root body[data-view="player"] .card-top{position:static;min-height:0;height:0}
+:root body[data-view="player"] .card-name{height:35px;min-height:35px;flex:0 0 35px;width:100%;margin:0;text-transform:none;letter-spacing:0;font-size:13px;line-height:1.05}
+:root body[data-view="player"] .card-text{flex:1 1 auto;min-height:0;height:auto;padding:8px 4px;margin:0;font:13px/1.3 Georgia;overflow:auto}
+:root body[data-view="player"] .card-state{flex:0 0 20px;width:100%;height:20px;visibility:visible;padding:5px 1px 0;font:10px/1 system-ui;letter-spacing:.4px;text-transform:uppercase}
+:root body[data-view="player"] .card-emblem{display:none}
+:root body[data-view="player"] .instruction{height:58px;margin:0 auto;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:0 18px}
+:root body[data-view="player"] #hint{display:block;position:static;inset:auto;transform:none;width:auto;min-height:0;margin:0;padding:0;border:0;border-radius:0;background:none;color:#ddd7c4;font:13px/1.4 system-ui;text-align:center}
+:root body[data-view="player"] .payment{position:static;inset:auto;transform:none;display:flex;flex-direction:row;justify-content:center;align-items:center;width:auto;max-width:none;min-height:0;margin:0;padding:0;gap:12px;font:12px/1.3 system-ui}
+:root body[data-view="player"] .table:not(.has-selection) .payment{display:none}
+:root body[data-view="player"] .payment #cancel{min-height:28px;padding:4px;border:0;background:none;color:#d0c1a2;font:12px system-ui;text-decoration:underline;text-underline-offset:3px}
+:root body[data-view="player"] .actions{position:absolute;z-index:16;left:50%;right:auto;bottom:27px;top:auto;transform:translateX(-50%);width:auto;height:auto;min-height:0;display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;gap:12px;padding:0;margin:0;background:none;box-shadow:none}
+:root body[data-view="player"] .actions button{width:auto;min-width:180px;min-height:48px;height:48px;padding:0 24px;border-radius:4px;font:16px Georgia;transform:none;letter-spacing:0}
+:root body[data-view="player"] #play{border:1px solid #c6a779;background:linear-gradient(#e9c891,#b99a66);color:#1a231f;box-shadow:inset 0 0 0 3px #dec18e55,0 4px 14px #0005}
+:root body[data-view="player"] #play:disabled{opacity:1;filter:none;color:#aaa794;background:#273330;border-color:#65746a;box-shadow:inset 0 0 0 3px #182322}
+:root body[data-view="player"] #end{border:1px solid #70684f;background:#101d21de;color:#d7c7a4;box-shadow:none}
+:root body[data-view="player"] #play::after,:root body[data-view="player"] .action-icon{display:none}
+:root body[data-view="player"] .stat{position:relative;pointer-events:auto}
+:root body[data-view="player"] .stat:focus-visible{outline:2px solid #eed8ac;outline-offset:4px}
+:root body[data-view="player"] .stat::after{content:attr(data-tooltip);position:absolute;left:0;top:calc(100% + 8px);padding:8px;background:#101b1ef5;color:#f2e4c8;width:max-content;font:12px system-ui;opacity:0;pointer-events:none;text-shadow:none}
+:root body[data-view="player"] .foe-id .stat::after{left:auto;right:0}
+:root body[data-view="player"] .stat:hover::after,:root body[data-view="player"] .stat:focus-visible::after{opacity:1}
+:root body[data-view="player"] #enemy-play{top:44%;width:290px}
+:root body[data-view="player"] #enemy-play .card{height:235px;min-height:235px;max-height:235px;width:168px;min-width:168px;max-width:168px;padding:7px;gap:0}
+:root body[data-view="player"] #enemy-play .card-text{font:13px/1.3 Georgia;overflow:auto}
+:root body[data-view="player"] #enemy-play .card-name{font-size:13px;height:35px;min-height:35px}
+:root body[data-view="player"] #enemy-play .card-art{height:95px}
+:root body[data-view="player"] #enemy-play .card-state{font-size:10px}
+@media(max-width:900px){
+ :root body[data-view="player"] .table{--hand-bottom:98px}
+ :root body[data-view="player"] .combatant-art{top:170px;height:auto;width:158vw;aspect-ratio:2/3}
+ :root body[data-view="player"] .hero-art{left:14%}
+ :root body[data-view="player"] .enemy-art{left:83%}
+ :root body[data-view="player"] .table-top{top:158px;display:flex;align-items:center;gap:8px;white-space:nowrap}
+ :root body[data-view="player"] #scene-name{display:none}
+ :root body[data-view="player"] #turn{font-size:13px}
+ :root body[data-view="player"] #turn-phase{margin:0;font-size:11px}
+ :root body[data-view="player"] .hand{gap:0;padding:28px 16px 14px}
+ :root body[data-view="player"] .hand .card{--angle:0deg}
+ :root body[data-view="player"] .hand .card + .card{margin-left:clamp(-80px,calc((100vw - 32px - var(--hand-count) * 168px) / max(1,var(--hand-count) - 1)),14px)}
+ :root body[data-view="player"] .actions{bottom:29px;width:calc(100% - 32px);gap:10px}
+ :root body[data-view="player"] .actions button{flex:1;min-width:0;padding:0 10px;font-size:15px}
+ :root body[data-view="player"] #hint{font-size:12px}
+ :root body[data-view="player"] .pile-counter{bottom:9px;font-size:10px}
+ :root body[data-view="player"] .pile-counter b{display:inline;font:11px system-ui;margin-left:4px}
+ :root body[data-view="player"] .pile-deck{left:20px}
+ :root body[data-view="player"] .pile-discard{right:20px}
+ :root body[data-view="player"] #enemy-play{top:44%}
+}
+@media(max-height:640px){
+ :root body[data-view="player"]{overflow:auto}
+ :root body[data-view="player"] main{min-height:640px}
+}
+@media(prefers-reduced-motion:reduce){:root body[data-view="player"] .health-fill{transition:none}}
+:root body[data-view="player"] .table:not(.has-selection) #hint{display:block}
+:root body[data-view="player"] .actions #play,:root body[data-view="player"] .actions #end{min-height:48px;height:48px;font-size:16px}
+:root body[data-view="player"] .identity .defenses{min-height:0;line-height:1}
+:root body[data-view="player"] .actions{width:max-content}
+:root body[data-view="player"] .actions #play,:root body[data-view="player"] .actions #end{width:180px;flex:0 0 auto}
+@media(max-width:900px){
+ :root body[data-view="player"] .actions{width:calc(100% - 32px)}
+ :root body[data-view="player"] .actions #play,:root body[data-view="player"] .actions #end{width:auto;flex:1 1 0}
+}
+@media(max-width:900px){
+ :root body[data-view="player"] .identity .dodge{position:absolute;top:calc(100% + 8px);left:0}
+ :root body[data-view="player"] .foe-id .dodge{left:auto;right:0}
+}

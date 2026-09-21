@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {hasPlayableCard} from '../turn-flow.mjs';
+const cards={paid:{cost:1},free:{cost:0},expensive:{cost:3}};
+const check=(hand,expected)=>assert.equal(hasPlayableCard({cards,hand}),expected);
+check([],false);
+check([{key:'paid'}],false);
+check([{key:'free'}],true);
+check([{key:'paid',discount:1}],true);
+check([{key:'paid'},{key:'expensive'}],true);
+check([{key:'expensive'},{key:'expensive'}],false);
+console.log('PASS: empty hand, insufficient payment, free cards and discounts');

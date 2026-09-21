@@ -1,0 +1,74 @@
+/* Shared raster card face for the hand, enemy reveal and debug view. */
+:root body[data-view] .material-card{--plate-size:590.77%;--plate-y:0%;--rarity-ink:#fff0d6;--rarity-shadow:0 1px 3px #160900,0 0 5px #160900;--rarity-color:#c38c60;--frame-x:100%;--accent:#bcc3bf}
+:root body[data-view] .material-card.red{--frame-x:0%;--accent:#e85050}
+:root body[data-view] .material-card.green{--frame-x:33.333333%;--accent:#85c490}
+:root body[data-view] .material-card.blue{--frame-x:66.666667%;--accent:#8bbcf2}
+:root body[data-view] .material-card[data-rarity="silver"]{--plate-size:579.62%;--plate-y:20.46%;--rarity-ink:#fff;--rarity-color:#c7d2d9;--rarity-shadow:0 1px 3px #111,0 0 5px #111}
+:root body[data-view] .material-card[data-rarity="gold"]{--plate-size:498.70%;--plate-y:42.75%;--rarity-ink:#241300;--rarity-color:#e6c261;--rarity-shadow:0 1px 1px #ffefac}
+:root body[data-view] .material-card[data-rarity="purple"]{--plate-size:483.02%;--plate-y:68.39%;--rarity-ink:#fff0ff;--rarity-color:#cc9ff0;--rarity-shadow:0 1px 3px #190025,0 0 5px #190025}
+:root body[data-view] .material-card[data-rarity="diamond"]{--plate-size:398.96%;--plate-y:100%;--rarity-ink:#142b38;--rarity-color:#c0f4fa;--rarity-shadow:0 1px 2px #fff}
+:root body .card.material-card,:root body[data-view="player"] .card.material-card,:root body[data-view="player"] #enemy-play .card.material-card{
+ box-sizing:border-box;position:relative;display:block;--card-width:168px;flex:0 0 var(--card-width);width:var(--card-width);min-width:var(--card-width);max-width:var(--card-width);height:270px;min-height:270px;max-height:270px;padding:0;border:0;border-radius:12px;aspect-ratio:auto;background: url('./assets/card-material-frames-v4.png') var(--frame-x) 0 / 400% 100%;box-shadow:0 9px 18px #0009;color:#f1e8d6;overflow:visible;text-align:left;
+}
+:root body[data-view] .material-card::before,:root body[data-view] .material-card::after{display:none}
+:root body[data-view] .material-card .card-art,:root body[data-view] #enemy-play .material-card .card-art{display:block;position:absolute;inset:20px 9% auto;width:82%;height:119px;min-height:0;border:0;border-radius:5px 5px 0 0;background:none;box-shadow:none;overflow:hidden;isolation:isolate}
+:root body[data-view] .material-card .card-art::before,:root body[data-view] #enemy-play .material-card .card-art::before{content:"";display:block;position:absolute;top:50%;left:0;width:100%;aspect-ratio:1;transform:translateY(-50%);background:url('./assets/card-art-atlas.png') var(--art-x) var(--art-y) / 500% 200%;z-index:0}
+:root body[data-view] .material-card .card-art::after,:root body[data-view] #enemy-play .material-card .card-art::after{content:"";position:absolute;inset:0;background:linear-gradient(transparent 65%,#141616)}
+:root body[data-view] .material-card .card-top,:root body[data-view] #enemy-play .material-card .card-top{position:absolute;inset:0;display:block;pointer-events:none}
+:root body[data-view] .material-card .cost,:root body[data-view] #enemy-play .material-card .cost{position:absolute;inset:16px auto auto 9%;display:grid;place-items:center;width:29px;height:34px;padding:0;border:0;outline:0;border-radius:0;clip-path:polygon(0 0,100% 0,100% 83%,50% 100%,0 83%);background:url('./assets/card-rarity-materials-v3.png') 0 var(--plate-y) / 100% var(--plate-size);color:var(--rarity-ink);text-shadow:var(--rarity-shadow);font:700 21px/1 Georgia;z-index:2}
+:root body[data-view] .material-card .discount,:root body[data-view] #enemy-play .material-card .discount{position:absolute;right:1px;bottom:8px;font:10px/1 system-ui}
+:root body[data-view] .material-card .card-color,:root body[data-view] #enemy-play .material-card .card-color{display:block;position:absolute;right:9%;top:19px;max-width:62%;padding:3px 4px;border:1px solid var(--accent);border-radius:10px;background:#111c1ce8;color:var(--accent);font:7px/1 system-ui;letter-spacing:0;text-transform:none}
+:root body[data-view] .material-card .card-type,:root body[data-view] #enemy-play .material-card .card-type{display:block;position:absolute;top:134px;left:9%;width:82%;height:13px;margin:0;padding:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:var(--accent);font:7px/13px system-ui;letter-spacing:.03em;text-transform:uppercase;text-align:left}
+:root body[data-view] .material-card .card-name,:root body[data-view] #enemy-play .material-card .card-name{position:absolute;top:148px;left:7%;width:86%;height:36px;min-height:36px;max-height:36px;margin:0;padding:3px 9px;display:flex;align-items:center;justify-content:center;text-align:center;border:0;border-radius:0;box-shadow:0 2px 4px #0005;background:url('./assets/card-rarity-materials-v3.png') 0 var(--plate-y) / 100% var(--plate-size);color:var(--rarity-ink);text-shadow:var(--rarity-shadow);font:700 12px/14px Georgia;text-transform:none;overflow:hidden;overflow-wrap:anywhere}
+:root body[data-view] .material-card .card-text,:root body[data-view] #enemy-play .material-card .card-text{position:absolute;top:188px;left:9%;width:82%;height:44px;min-height:44px;max-height:44px;margin:0;padding:0;display:flex;align-items:center;gap:5px;overflow:hidden;color:#e5e4db;font:9px/12px system-ui;border:0;text-align:left}
+:root body[data-view] .material-card .card-value,:root body[data-view] #enemy-play .material-card .card-value{flex:none;min-width:28px;font:400 25px/1 Georgia;color:#f5ecdb}
+:root body[data-view] .material-card .card-text small,:root body[data-view] #enemy-play .material-card .card-text small{display:block;font:inherit;color:#c0c7c1}
+:root body[data-view] .material-card .card-rarity,:root body[data-view] #enemy-play .material-card .card-rarity{position:absolute;top:235px;left:8%;width:84%;height:10px;color:var(--rarity-color);font:7px/10px system-ui;text-align:center;text-transform:uppercase;letter-spacing:.05em}
+:root body[data-view] .material-card .card-rarity i,:root body[data-view] #enemy-play .material-card .card-rarity i{font-style:normal}
+:root body[data-view] .material-card .card-state,:root body[data-view] #enemy-play .material-card .card-state{position:absolute;top:247px;left:8%;width:84%;height:11px;min-height:11px;margin:0;padding:0;border:0;display:block;visibility:visible;background:#101818b0;color:#f4e1b2;font:7px/11px system-ui;text-align:center;letter-spacing:0}
+:root body[data-view] .material-card .card-state:empty,:root body[data-view] #enemy-play .material-card .card-state:empty{visibility:hidden}
+:root body[data-view] .material-card.selected{outline:2px solid #f7dba2;outline-offset:3px;box-shadow:0 0 20px #e7b76855,0 10px 24px #000a}
+:root body[data-view] .material-card.paying{outline:2px solid #b8dacb;outline-offset:2px}
+:root body[data-view] .material-card:focus-visible{outline:2px solid #fff1c2;outline-offset:4px}
+:root body[data-view="player"] .table{--fixed-card-height:270px}
+:root body[data-view="player"] #enemy-play .material-card{margin:0;transform:none}
+/* Keep instructions above the taller cards without changing table controls. */
+@media(min-width:900px){:root body[data-view="player"] .hand-top{bottom:350px}:root body[data-view="player"] #hint{bottom:358px}}
+
+:root body[data-view] .material-card .card-color,:root body[data-view] #enemy-play .material-card .card-color{top:22px;right:11%;width:12px;height:12px;max-width:none;padding:0;border:0;border-radius:0;background:none;box-shadow:none;font:12px/12px Georgia;text-align:center;text-shadow:0 1px 3px #000}
+/* Larger cards retain exactly the same internal geometry in both actors' hands. */
+:root body[data-view="player"] .hand .card.material-card,:root body[data-view="player"] #enemy-play .card.material-card{zoom:var(--card-scale,1.38);display:block;width:168px;min-width:168px;max-width:168px;flex:0 0 168px;height:270px;min-height:270px;max-height:270px;padding:0}
+:root body[data-view="player"] .table{--fixed-card-height:calc(270px * var(--card-scale,1.38))}
+:root body[data-view="player"] .hand{padding-top:34px;padding-bottom:18px}
+@media(max-width:900px){:root body[data-view="player"] .hand .card.material-card + .card.material-card{margin-left:clamp(-112px,calc((100vw - 32px - var(--hand-count) * 168px * var(--card-scale,1.38)) / max(1,var(--hand-count) - 1) / var(--card-scale,1.38)),12px)}}
+/* Center the effect number in the space between the inner frame and its text. */
+:root body[data-view] .material-card .card-text,:root body[data-view] #enemy-play .material-card .card-text{display:grid;grid-template-columns:33px minmax(0,1fr);gap:0;align-items:center}
+:root body[data-view] .material-card .card-value,:root body[data-view] #enemy-play .material-card .card-value{display:block;width:33px;min-width:0;text-align:center;align-self:center;line-height:1}
+
+/* Signs do not shift the centered numeral. */
+:root body[data-view] .material-card .card-number,:root body[data-view] #enemy-play .material-card .card-number{position:relative;display:inline-block;font:inherit}
+:root body[data-view] .material-card .card-sign,:root body[data-view] #enemy-play .material-card .card-sign{position:absolute;right:100%;top:50%;transform:translateY(-50%);margin-right:2px;font:400 13px/1 Georgia}
+
+/* Color-matched backlight is reserved for an actually doubled effect. */
+:root body[data-view] .material-card{--aura:#d5e7e7}
+:root body[data-view] .material-card.red{--aura:#ff354d}
+:root body[data-view] .material-card.green{--aura:#54f49c}
+:root body[data-view] .material-card.blue{--aura:#5acaff}
+:root body[data-view] .card.material-card.empowered,:root body[data-view] #enemy-play .card.material-card.empowered{box-shadow:0 0 12px 3px color-mix(in srgb,var(--aura) 80%,transparent),0 0 30px 9px color-mix(in srgb,var(--aura) 45%,transparent),0 0 48px 14px color-mix(in srgb,var(--aura) 20%,transparent);outline-color:var(--aura)}
+:root body[data-view="player"] .hand{padding-top:48px;padding-bottom:32px}
+/* One fixed value cell accommodates a reserved sign and two full-size digits. */
+:root body[data-view] .material-card .card-text,:root body[data-view] #enemy-play .material-card .card-text{top:191px;height:54px;min-height:54px;max-height:54px;grid-template-columns:49px minmax(0,1fr);column-gap:3px;border-top:1px solid #ffffff15;border-bottom:1px solid #ffffff15}
+:root body[data-view] .material-card .card-value,:root body[data-view] #enemy-play .material-card .card-value{display:grid;grid-template-columns:9px 34px;width:49px;padding:0 3px;align-items:center;font-size:24px;font-variant-numeric:lining-nums tabular-nums}
+:root body[data-view] .material-card .card-number,:root body[data-view] #enemy-play .material-card .card-number{display:block;position:static;text-align:center;line-height:1}
+:root body[data-view] .material-card .card-sign,:root body[data-view] #enemy-play .material-card .card-sign{position:static;transform:none;margin:0;font:400 13px/1 Georgia;text-align:center}
+:root body[data-view] .material-card .card-value[data-digits="3"],:root body[data-view] #enemy-play .material-card .card-value[data-digits="3"]{font-size:18px}
+:root body[data-view] .material-card .card-value[data-digits="4"],:root body[data-view] #enemy-play .material-card .card-value[data-digits="4"]{font-size:14px}
+:root body[data-view] .material-card.empowered .card-number,:root body[data-view] #enemy-play .material-card.empowered .card-number{font-weight:700;color:var(--aura);text-shadow:0 0 5px var(--aura),0 0 12px color-mix(in srgb,var(--aura) 65%,transparent)}
+:root body[data-view] .material-card .card-state,:root body[data-view] #enemy-play .material-card .card-state{top:calc(100% + 7px);height:16px;min-height:16px;left:0;width:100%;background:none;color:#f5e8cc;text-shadow:0 1px 4px #000,0 0 7px #000;font:10px/16px system-ui;text-transform:none}
+:root body[data-view="player"] #enemy-play .material-card{margin-bottom:25px}
+:root body[data-view="player"] .hand{padding-bottom:46px}
+
+:root body[data-view] .material-card .card-special{position:absolute;top:242px;left:6%;width:88%;text-align:center;color:#ead3a0;font:9px/12px system-ui;white-space:nowrap}
+:root body[data-view] .material-card:has(.card-special:not(:empty)) .card-text{top:184px;height:51px;min-height:51px;max-height:51px}
+
+:root body[data-view] .material-card.unique-art .card-art::before,:root body[data-view] #enemy-play .material-card.unique-art .card-art::before{background-image:var(--unique-art);background-size:cover;background-position:center}
