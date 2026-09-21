@@ -36,8 +36,8 @@ s=fixture('haste',['heal','fireball']);assert.equal(cards.haste.color,'gray');as
 s=fixture('heal',['haste']);s.hp=1;assert.equal(paidEffect(s,'a',['p0']).amount,2);play(s,'a',['p0']);assert.equal(s.hp,3);
 s=fixture('maneuver',['shot','dodge']);s.deck=Array.from({length:8},(_,i)=>({id:'d'+i,key:'guard'}));play(s,'a',['p0','p1']);assert.equal(s.hand.length,4);
 // Surprise joins the primary hit, before defense. One dodge prevents both.
-s=fixture();s.enemy.confusion=1;s.enemy.armor=1;play(s,'a',['p0']);assert.equal(s.enemy.hp,6);
-s=fixture();s.enemy.activeConfusion=1;s.enemy.dodge=1;play(s,'a',['p0']);assert.equal(s.enemy.hp,10);assert.equal(s.enemy.dodge,0);
+s=fixture();s.dodge=1;s.enemy.armor=1;play(s,'a',['p0']);assert.equal(s.enemy.hp,6);
+s=fixture();s.dodge=1;s.enemy.dodge=1;play(s,'a',['p0']);assert.equal(s.enemy.hp,10);assert.equal(s.enemy.dodge,0);
 s=fixture('shot',['heal']);s.enemy.ward=1;s.enemy.armor=2;s.enemy.dodge=1;play(s,'a',['p0']);assert.equal(s.enemy.ward,0);assert.equal(s.enemy.armor,1);assert.equal(s.enemy.hp,10);assert.equal(s.enemy.dodge,1);
 // Dodge survives the next draw, permits fortify, then expires at turn end.
 s=fixture('dodge',['heal']);play(s,'a',['p0']);endTurn(s,()=>.5);assert.equal(s.dodge,1);

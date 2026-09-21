@@ -6,7 +6,7 @@ import {activeStatuses} from '../statuses.mjs';
 const catalog=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8'));
 function fixture(){
  const s=createGame(1,5,()=>.5,catalog);
- s.cards.status={...catalog.hit,effect:'none',amount:0,cost:0,special:'none',bonus:'vigor',bonusAmount:2,malus:'stun',malusAmount:3};
+ s.cards.status={...catalog['dirty-trick'],effect:'none',amount:0,cost:0,special:'none',bonus:'vigor',bonusAmount:2,malus:'stun',malusAmount:3};
  s.hand=[{id:'a',key:'status'},{id:'b',key:'status'}];
  s.deck=Array.from({length:20},(_,i)=>({id:'d'+i,key:'guard'}));
  s.enemy.hand=[{id:'saved',key:'guard'}];s.enemy.cards.guard={...catalog.guard,cost:99};
@@ -25,8 +25,8 @@ s=fixture();s.cards.status={...s.cards.status,bonus:'none',malus:'none',special:
 play(s,'a',[]);assert.equal(s.vigor,2); // immediate special draw does not consume next-turn status
 s=fixture();s.enemy.cards.status={...s.cards.status,bonusAmount:1,malusAmount:2};s.enemy.hand=[{id:'enemy',key:'status'}];s.enemy.deck=[];s.enemy.discard=[];
 endTurn(s,()=>.5);assert.equal(s.enemy.vigor,0);assert.equal(s.enemy.activeVigor,1);assert.equal(s.vigor,0);assert.equal(s.confusion,0);assert.equal(s.hand.length,2);
-assert.match(describe(catalog.hit),/Оглушение 1/);
-assert.equal(catalog.hit.malus,'stun');assert.equal(catalog.hit.special,'none');
+assert.match(describe(catalog['dirty-trick']),/Оглушение 1/);
+assert.equal(catalog['dirty-trick'].malus,'stun');assert.equal(catalog['dirty-trick'].special,'none');
 assert.equal(effectAmount({...catalog.dodge,amount:0}),0);
 assert.equal(effectAmount({...catalog.dodge,amount:3}),3);
 assert.throws(()=>parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8').replace('Оглушение | 1','Оглушение | -1')),/целые/);

@@ -114,7 +114,7 @@ function playFor(game, actor, target, cardId, paymentIds) {
   ids.add(cardId);
   actor.discard.push(...actor.hand.filter(c=>ids.has(c.id)).map(({id,key})=>({id,key}))); actor.hand=actor.hand.filter(c=>!ids.has(c.id));
   let outcome='';
-  const surprise=c.special==='surprise'&&isStunned(target)?effect.special:0;
+  const surprise=c.special==='surprise'&&actor.dodge>0?effect.special:0;
   if(['physical','magic','shot'].includes(c.effect)) {
     damageTarget(game,target,effect.amount+surprise+leftBonus,c.effect);
   }
@@ -183,7 +183,7 @@ function chooseEnemyPlay(s){
       if(card.special==='haste')utility+=others.filter(c=>!ids.includes(c.id)).reduce((v,c)=>v+Math.min(cardInHand(actor,c).cost,effect.special)*4,0);
       if(card.bonus==='vigor')utility+=card.bonusAmount*2;
       if(card.malus==='stun')utility+=card.malusAmount*1.5;
-      if(card.special==='surprise'&&isStunned(s))utility+=effect.special*3;
+      if(card.special==='surprise'&&actor.dodge>0)utility+=effect.special*3;
       if((card.special==='fortify'&&actor.dodge>0||card.bonus==='stance')&&!actor.stance)utility+=2;
       const score=utility/(card.cost+1)-payment.reduce((v,c)=>v+value(c)*.03,0);
       if(score>0&&(!best||score>best.score))best={cardId:instance.id,paymentIds:ids,score};

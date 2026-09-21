@@ -37,4 +37,15 @@ s=game(['clever-feint','guard']);play(s,'0',['1']);assert.equal(s.vigor,1);asser
 s=game([]);s.enemy.hand=[{id:'r',key:'hit'},{id:'l',key:'left-hook'}];[...enemyTurn(s,()=>.5)];assert.equal(s.hp,3);
 for(const id of ['right-cross','bee-sting','butterfly-step','left-hook','clever-feint','tight-guard','brass-knuckles','best-defense'])assert.ok(existsSync(new URL(`../assets/cards/${id}-v1.png`,import.meta.url)));
 assert.equal(cards.hit.name,'Правый коронный');assert.equal(cards.strike.name,'Жаль как пчела');assert.equal(cards.dodge.name,'Порхай как бабочка');
+assert.equal(cards.hit.rarity,'bronze');assert.equal(cards.hit.malus,'none');
+s=game(['hit','guard']);play(s,'0',['1']);assert.equal(s.enemy.confusion,0);
+// Surprise requires the attacker's dodge, never the target's stun or dodge.
+for(const [ownDodge,stun,targetDodge,damage] of [[0,0,0,3],[0,1,0,3],[1,0,0,5],[1,1,0,5],[1,0,1,0]]){
+ s=game(['strike','guard','hit']);s.dodge=ownDodge;s.enemy.confusion=stun;s.enemy.dodge=targetDodge;
+ play(s,'0',['1','2']);assert.equal(s.enemy.hp,50-damage);assert.equal(s.dodge,ownDodge);
+}
+s=game(['strike','heal','ward']);s.dodge=1;s.enemy.armor=1;play(s,'0',['1','2']);assert.equal(s.enemy.hp,48);
+// Same activation condition on the enemy side, with its dodge retained during the attack.
+s=game([]);s.enemy.dodge=1;s.enemy.dodgeLayers=[{amount:1,expires:2}];s.enemy.hand=[{id:'s',key:'strike'},{id:'p',key:'guard'},{id:'q',key:'hit'}];
+[...enemyTurn(s,()=>.5)];assert.equal(s.hp,5);
 console.log('PASS: boxing payment exception, handed art assets, sequential combo/reset, combined vs separate attacks, shields/dodges, conditional draw, stance jab, vigor and enemy symmetry.');

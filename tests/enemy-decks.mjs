@@ -6,14 +6,14 @@ import {parseCardsMarkdown} from '../catalog.mjs';
 import {createGame,endTurn} from '../engine.mjs';
 const cards=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8'));
 const expected={
- vagabond:['strike','clever-feint','tight-guard','guard'],
+ vagabond:['hit','strike','clever-feint','tight-guard','guard'],
  robber:['dodge','shot','rob','maneuver'],
  cultist:['spark','ward'],
- gangster:['strike','clever-feint','tight-guard','guard','dodge','shot','haste','rob','maneuver','heal','dirty-bandages'],
+ gangster:['hit','strike','clever-feint','tight-guard','guard','dodge','shot','haste','rob','maneuver','heal','dirty-bandages'],
  initiate:['dodge','shot','rob','maneuver','spark','ward'],
  hybrid:['spark','ward','fireball','oblivion'],
  'deep-one':['dodge','shot','rob','maneuver','spark','ward','fireball','oblivion'],
- grandmaster:['strike','clever-feint','tight-guard','guard','dodge','shot','rob','maneuver','spark','ward','fireball','oblivion']
+ grandmaster:['hit','strike','clever-feint','tight-guard','guard','dodge','shot','rob','maneuver','spark','ward','fireball','oblivion']
 };
 for(const enemy of opponents){
  const wanted=expected[enemy.id].sort();
@@ -37,7 +37,7 @@ const expanded={...cards,extra:{...cards.hit,id:'extra',copies:0,rarity:'bronze'
 assert.ok(enemyDeck(expanded,'Бродяга').includes('extra'));
 assert.ok(!enemyDeck(expanded,'Бродяга 2').includes('gold'));
 assert.ok(!enemyDeck(cards,'Бродяга 2').includes('disarm'));
-assert.ok(!enemyDeck(cards,'Бродяга').includes('hit'));
+assert.ok(!enemyDeck(cards,'Бродяга').includes('left-hook'));
 assert.throws(()=>enemyDeck(cards,'Missing'),/Неизвестный класс/);
 assert.throws(()=>enemyDeck({},'Бродяга'),/нет доступных карт/);
 console.log('PASS: exact decks for all 8 enemies, all 18 classes, tiers, complete pool, unknown/empty class guards');

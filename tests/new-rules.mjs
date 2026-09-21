@@ -40,7 +40,7 @@ s=setup('maneuver',Array(8).fill('hit'));s.deck=[{id:'draw1',key:'hit'},{id:'dra
 s=setup('maneuver',['hit','guard']);s.deck=[];s.discard=[];use(s);assert.equal(s.hand.length,2); // just played/payment cards can be reshuffled
 s=setup('haste',['shot','dodge','fireball']);use(s);assert.equal(cardInHand(s,s.hand[0]).cost,0);assert.equal(cardInHand(s,s.hand[1]).cost,1);
 // Enemy stun discards from the already replenished player hand at turn start.
-s=setup('hit');s.hand=[];s.deck=Array.from({length:8},(_,i)=>({id:`p${i}`,key:'medkit'}));s.enemy.cards.hit={...s.enemy.cards.hit,cost:0};s.enemy.hand=[{id:'a',key:'hit'}];endTurn(s,()=>.5);assert.equal(s.hand.length,3);assert.equal(s.confusion,0);
+s=setup('hit');s.hand=[];s.deck=Array.from({length:8},(_,i)=>({id:`p${i}`,key:'medkit'}));s.enemy.cards['dirty-trick']={...s.enemy.cards['dirty-trick'],cost:0};s.enemy.hand=[{id:'a',key:'dirty-trick'}];endTurn(s,()=>.5);assert.equal(s.hand.length,3);assert.equal(s.confusion,0);
 let deck=initial;let reward=createReward(catalog,()=>.5);assert.equal(new Set(reward.choices).size,3);assert.throws(()=>claimReward(deck,reward,'missing'));deck=claimReward(deck,reward,reward.choices[0]);assert.equal(deck.length,11);assert.throws(()=>claimReward(deck,reward,reward.choices[1]));
 s=createGame(1,5,()=>.5,catalog,null,deck);assert.equal(s.hand.length+s.deck.length,11);assert.equal(s.enemy.hand.length+s.enemy.deck.length,10);
 const pool=Object.values(catalog).filter(c=>!c.copies),total=pool.reduce((n,c)=>n+REWARD_WEIGHTS[c.rarity],0);
