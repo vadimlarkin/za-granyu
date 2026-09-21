@@ -13,10 +13,9 @@ function drawCards(actor,count,random){
  return drawn;
 }
 function draw(s,random){
- const penalty=s.confusion||0,bonus=s.vigor||0;s.confusion=0;s.vigor=0;
- s.activeConfusion=penalty;s.activeVigor=bonus;
- const count=drawCards(s,Math.max(0,Math.max(0,limit(s)-s.hand.length)+bonus-penalty),random);
- log(s,`${s.name}, ход ${s.turn}: добор ${count}, в руке ${s.hand.length} из ${limit(s)}.${penalty?` Оглушение: добор уменьшен на ${penalty}.`:''}${bonus?` Бодрость духа: добор увеличен на ${bonus}.`:''}`);
+ const bonus=s.vigor||0;s.vigor=0;s.activeVigor=bonus;
+ const count=drawCards(s,Math.max(0,limit(s)-s.hand.length)+bonus,random);
+ log(s,`${s.name}: добор ${count}, в руке ${s.hand.length} из ${limit(s)}.${bonus?` Бодрость духа: добор увеличен на ${bonus}.`:''}`);
 }
 export function createGame(level=0, cap=4+level, random=Math.random, catalog, opponent=null, collection=null, handBonus=0, perk=null) {
   if(!catalog)throw Error('Не загружен файл cards.md.');
@@ -26,13 +25,13 @@ export function createGame(level=0, cap=4+level, random=Math.random, catalog, op
     const keys=collection??Object.keys(cards).flatMap(key=>Array(cards[key].copies??1).fill(key));
     if(keys.some(key=>!cards[key]))throw Error('В колоде есть неизвестная карта.');
     const deck=keys.map((key,i)=>({id:`${name}-${key}-${i}`,key}));
-    return {name,cards,level,cap,turn:1,hp:10,maxHp:10,armor:0,ward:0,dodge:0,dodgeLayers:[],confusion:0,vigor:0,activeConfusion:0,activeVigor:0,stance:0,hand:[],deck:shuffle(deck,random),discard:[],log:messages};
+    return {name,cards,level,cap,turn:1,hp:10,maxHp:10,armor:0,ward:0,dodge:0,dodgeLayers:[],stunLayers:[],confusion:0,vigor:0,activeConfusion:0,activeVigor:0,stance:0,hand:[],deck:shuffle(deck,random),discard:[],log:messages};
   }
   const s=actor('Игрок',collection);s.handBonus=handBonus?1:0;s.cap+=s.handBonus;s.status='playing';s.events=[];s.random=random;s.transferId=0;s.enemy=actor(opponent?.name || 'Страж',opponent?enemyDeck(catalog,opponent.type):null);
   if(opponent)Object.assign(s.enemy,{level:opponent.level,cap:opponent.cap,hp:opponent.hp,maxHp:opponent.hp,type:opponent.type});
   s.perk=perk;
   if(perk==='veteran'){s.enemy.maxHp=Math.floor(s.enemy.maxHp*.9);s.enemy.hp=s.enemy.maxHp;}
-  draw(s,random);return s;
+  draw(s,random);draw(s.enemy,random);return s;
 }
 export function cardInHand(s, instance) {
   const card=s.cards[instance.key];
@@ -68,15 +67,37 @@ function damageTarget(game,target,amount,kind){
  if(blocked)game.events.push({target:side,kind:'block',amount:blocked});
  if(dealt)game.events.push({target:side,kind:'damage',amount:dealt});
 }
-function finishActorTurn(actor){
- actor.activeConfusion=0;actor.activeVigor=0;
+function addStun(game,source,target,amount){
+ if(!amount)return;
+ target.confusion=(target.confusion||0)+amount;
+ (target.stunLayers??=[]).push({amount,applied:false,source:source===game?'hero':'foe',expires:source.turn+1});
+}
+function finishActorTurn(game,actor){
+ actor.activeVigor=0;
+ const source=actor===game?'hero':'foe',target=actor===game?game.enemy:game;
+ target.stunLayers=(target.stunLayers||[]).filter(layer=>{
+  if(layer.source!==source||layer.expires>actor.turn)return true;
+  const field=layer.applied?'activeConfusion':'confusion';target[field]=Math.max(0,(target[field]||0)-layer.amount);return false;
+ });
  const expired=(actor.dodgeLayers||[]).filter(x=>x.expires<=actor.turn).reduce((n,x)=>n+x.amount,0);
  actor.dodge=Math.max(0,actor.dodge-expired);
  actor.dodgeLayers=(actor.dodgeLayers||[]).filter(x=>x.expires>actor.turn&&x.amount>0);
 }
-function startActorTurn(actor,random){
+function startActorTurn(game,actor,random){
  if(!actor.stance)actor.armor=0;
- actor.ward=0;draw(actor,random);
+ actor.ward=0;
+ const stun=actor.confusion||0;
+ // Also normalize directly supplied combat fixtures into source-bound layers.
+ const represented=(actor.stunLayers||[]).filter(layer=>!layer.applied).reduce((sum,layer)=>sum+layer.amount,0);
+ if(stun>represented){const source=actor===game?game.enemy:game;(actor.stunLayers??=[]).push({amount:stun-represented,applied:false,source:source===game?'hero':'foe',expires:source.turn});}
+ actor.confusion=0;actor.activeConfusion=(actor.activeConfusion||0)+stun;
+ for(const layer of actor.stunLayers||[])layer.applied=true;
+ let discarded=0;
+ while(discarded<stun&&actor.hand.length){
+  const index=Math.floor(random()*actor.hand.length),[{id,key}]=actor.hand.splice(index,1);
+  actor.discard.push({id,key});discarded++;
+ }
+ if(stun)log(actor,`${actor.name}: оглушение ${stun}, в начале хода сброшено случайных карт: ${discarded}.`);
 }
 function playFor(game, actor, target, cardId, paymentIds) {
   if(game.status!=='playing') throw Error('Бой уже завершён.');
@@ -101,7 +122,7 @@ function playFor(game, actor, target, cardId, paymentIds) {
   }
   if(surprise&&!['physical','magic','shot'].includes(c.effect))damageTarget(game,target,surprise,'physical');
   if(c.special==='fortify'&&actor.dodge>0)actor.stance=1;
-  if(c.special==='confuse')target.confusion=(target.confusion||0)+effect.special;
+  if(c.special==='confuse')addStun(game,actor,target,effect.special);
   if(c.special==='haste')actor.hand.forEach(card=>{card.discount=(card.discount||0)+effect.special;});
   if(c.special==='draw'){
     const count=drawCards(actor,effect.special,game.random);outcome+=` Добрано карт: ${count}.`;
@@ -117,7 +138,7 @@ function playFor(game, actor, target, cardId, paymentIds) {
   }
   if(c.bonus==='vigor')actor.vigor=(actor.vigor||0)+c.bonusAmount;
   if(c.bonus==='stance')actor.stance=1;
-  if(c.malus==='stun')target.confusion=(target.confusion||0)+c.malusAmount;
+  if(c.malus==='stun')addStun(game,actor,target,c.malusAmount);
   log(game,`${actor.name} — ${c.name}${effect.primaryBoosted?' · основной эффект +50%':''}${effect.specialBoosted?' · спецэффект ×2':''}: ${effect.text} Оплата: ${names||'не требуется'}. ${outcome}`.trim());
   if(!target.hp) {game.status=target===game?'lost':'won';log(game,game.status==='won'?'Победа! Противник повержен.':'Поражение. Можно начать новый бой.');}
 }
@@ -163,8 +184,9 @@ export function* enemyTurn(s, random=Math.random) {
   s.events=[];
   if(s.status!=='playing') return;
   const enemy=s.enemy;
-  finishActorTurn(s);
-  startActorTurn(enemy,random);
+  finishActorTurn(s,s);
+  s.turn++;draw(s,random);
+  startActorTurn(s,enemy,random);
   log(s,`${enemy.name}, ход ${enemy.turn}. В руке: ${enemy.hand.length}.`);
   let actions=0,action=chooseEnemyPlay(s);
   while(action&&s.status==='playing'&&actions++<100){
@@ -179,8 +201,8 @@ export function* enemyTurn(s, random=Math.random) {
   }
   if(s.status!=='playing')return;
   log(s,`${enemy.name} завершил ход. Сохранено карт: ${enemy.hand.length}.`);
-  finishActorTurn(enemy);enemy.turn++;
-  s.turn++;startActorTurn(s,random);
+  finishActorTurn(s,enemy);enemy.turn++;
+  draw(enemy,random);startActorTurn(s,s,random);
 }
 
 // Synchronous consumer retained for simulations and engine tests.

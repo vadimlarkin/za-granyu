@@ -19,7 +19,7 @@ for(const enemy of opponents){
  const wanted=expected[enemy.id].sort();
  assert.deepEqual(enemyDeck(cards,enemy.type).sort(),wanted,enemy.name);
  const s=createGame(1,5,()=>.5,cards,enemy);
- assert.deepEqual(s.enemy.deck.map(c=>c.key).sort(),wanted);
+ assert.deepEqual([...s.enemy.deck,...s.enemy.hand].map(c=>c.key).sort(),wanted);
  assert.equal(s.hand.length+s.deck.length,10);
  // After several enemy turns, cards are still conserved except explicit theft.
  endTurn(s,()=>.5);

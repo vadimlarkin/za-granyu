@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {parseCardsMarkdown} from '../catalog.mjs';
 import {createGame,paidEffect,play,endTurn,isStunned,limit} from '../engine.mjs';
-import {newProgress,creditVictory,choosePerk,needsPerk,PERKS} from '../progression.mjs';
+import {newProgress,creditVictory,choosePerk,needsPerk,perkChoices,PERKS} from '../progression.mjs';
 import {opponents,createCampaign} from '../campaign.mjs';
 import {encounterLocation} from '../story.mjs';
 import {createReward,previewReward,confirmReward,rewardResolved,starterDeck} from '../rewards.mjs';
@@ -10,7 +10,7 @@ const cards=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.ur
 const p=newProgress();assert.throws(()=>choosePerk(p,'warrior'));
 const levels=[0,0,1,1,1,2,2,2],xp=[20,40,60,90,120,150,190,240];
 opponents.forEach((o,i)=>{creditVictory(p,i,o.xp);assert.equal(p.level,levels[i]);assert.equal(p.xp,xp[i]);creditVictory(p,i,o.xp);assert.equal(p.xp,xp[i]);});
-assert.equal(needsPerk(p),true);assert.throws(()=>choosePerk(p,'unknown'));choosePerk(p,'mage');assert.equal(needsPerk(p),false);assert.throws(()=>choosePerk(p,'thief'));
+assert.equal(needsPerk(p),true);assert.throws(()=>choosePerk(p,'unknown'));perkChoices(p,()=>0);choosePerk(p,'mage');assert.equal(needsPerk(p),false);assert.throws(()=>choosePerk(p,'thief'));
 const c=createCampaign(),locations=c.queue.map((_,index)=>encounterLocation({...c,index}).name);
 assert.equal(locations[0],locations[2]);assert.notEqual(locations[2],locations[3]);assert.equal(locations[3],locations[5]);assert.notEqual(locations[5],locations[6]);assert.equal(locations[6],locations[7]);
 function fixture(key='hit',payment=['guard']){

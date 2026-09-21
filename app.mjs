@@ -9,7 +9,7 @@ import {parseCardsMarkdown,effectAmount} from './catalog.mjs?v=20260921-new-art-
 import {cardFace,applyCardAppearance} from './card-face.mjs?v=20260921-new-art-1';
 import {createSound} from './audio.mjs';
 import {renderStatuses} from './statuses.mjs';
-import {PERKS,newProgress,creditVictory,needsPerk,choosePerk,XP_THRESHOLDS} from './progression.mjs';
+import {PERKS,newProgress,creditVictory,needsPerk,choosePerk,perkChoices,XP_THRESHOLDS} from './progression.mjs';
 const boostLabel=e=>[e.primaryBoosted?"Эффект +50%":"",e.specialBoosted?"Спецэффект ×2":""].filter(Boolean).join(" · ");
 const sound=createSound();
 document.addEventListener('pointerdown',()=>sound.unlock(),{capture:true});
@@ -182,7 +182,7 @@ function renderReward(){
 function renderPerks(){
  $('perk-choice').hidden=!needsPerk(progress);
  if(!needsPerk(progress))return;
- $('perk-options').replaceChildren(...PERKS.map(perk=>{
+ $('perk-options').replaceChildren(...perkChoices(progress).map(perk=>{
   const button=document.createElement('button');button.type='button';button.className='perk-option';
   button.setAttribute('aria-pressed',String(pendingPerk===perk.id));
   const name=document.createElement('strong'),description=document.createElement('span');name.textContent=perk.name;description.textContent=perk.description;

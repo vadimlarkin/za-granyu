@@ -7,7 +7,7 @@ export function activeStatuses(actor){
  return Object.entries(statusDefinitions).flatMap(([key,definition])=>{
   const pending=actor[key]||0,applied=actor[key==='vigor'?'activeVigor':key==='confusion'?'activeConfusion':'unused']||0;
   if(!pending&&!applied)return [];
-  const description=key==='stance'?'Физическая защита сохраняется между ходами до конца боя и расходуется при получении урона.':`${pending?`Следующий обычный добор ${key==='vigor'?'больше':'меньше'} на ${pending}. `:''}${applied?`При доборе уже применено: ${applied}. Статус действует до конца этого хода, повторно добор не меняет. `:''}Сохранённые карты остаются в руке.`;
+  const description=key==='stance'?'Физическая защита сохраняется между ходами до конца боя и расходуется при получении урона.':key==='confusion'?`${pending?`В начале следующего своего хода сбросить до ${pending} случайных карт из руки. `:''}${applied?`Сброс от оглушения ${applied} уже применён. Статус действует до конца следующего хода наложившего его персонажа. Повторного сброса нет.`:''}`:`${pending?`Добор в конце своего хода больше на ${pending}. `:''}${applied?`При доборе уже применено: ${applied}. Значок сохраняется до конца следующего своего хода. `:''}Сохранённые карты остаются в руке.`;
   return [{key,...definition,amount:pending+applied,tooltip:`${definition.name} · ${pending+applied}. ${description}`}];
  });
 }

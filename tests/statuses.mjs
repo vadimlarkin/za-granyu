@@ -15,16 +15,16 @@ function fixture(){
 }
 let s=fixture();play(s,'a',[]);play(s,'b',[]);
 assert.equal(s.vigor,4);assert.equal(s.enemy.confusion,6);assert.equal(s.confusion,0);
-assert.match(activeStatuses(s)[0].tooltip,/больше на 4/);assert.match(activeStatuses(s.enemy)[0].tooltip,/меньше на 6/);
-endTurn(s,()=>.5);assert.equal(s.hand.length,8);assert.equal(s.enemy.hand.length,1);
-assert.equal(activeStatuses(s)[0].amount,4);assert.match(activeStatuses(s)[0].tooltip,/уже применено/);assert.deepEqual(activeStatuses(s.enemy),[]);
+assert.match(activeStatuses(s)[0].tooltip,/больше на 4/);assert.match(activeStatuses(s.enemy)[0].tooltip,/сбросить до 6/);
+endTurn(s,()=>.5);assert.equal(s.hand.length,8);assert.equal(s.enemy.hand.length,4);
+assert.equal(activeStatuses(s)[0].amount,4);assert.match(activeStatuses(s)[0].tooltip,/уже применено/);assert.equal(activeStatuses(s.enemy)[0].amount,6);
 endTurn(s,()=>.5);assert.equal(s.hand.length,8);assert.deepEqual(activeStatuses(s),[]); // ordinary draw never discards an overfull hand
 s=fixture();s.hand=Array.from({length:7},(_,i)=>({id:'saved'+i,key:'guard'}));s.vigor=2;s.confusion=1;
 endTurn(s,()=>.5);assert.equal(s.hand.length,8); // +2 and -1 apply to actual next draw, even over cap
 s=fixture();s.cards.status={...s.cards.status,bonus:'none',malus:'none',special:'draw',specialAmount:1};s.vigor=2;
 play(s,'a',[]);assert.equal(s.vigor,2); // immediate special draw does not consume next-turn status
 s=fixture();s.enemy.cards.status={...s.cards.status,bonusAmount:1,malusAmount:2};s.enemy.hand=[{id:'enemy',key:'status'}];s.enemy.deck=[];s.enemy.discard=[];
-endTurn(s,()=>.5);assert.equal(s.enemy.vigor,1);assert.equal(s.vigor,0);assert.equal(s.confusion,0);assert.equal(s.hand.length,2);
+endTurn(s,()=>.5);assert.equal(s.enemy.vigor,0);assert.equal(s.enemy.activeVigor,1);assert.equal(s.vigor,0);assert.equal(s.confusion,0);assert.equal(s.hand.length,2);
 assert.match(describe(catalog.strike),/Оглушение 1/);
 assert.equal(catalog.strike.malus,'stun');assert.equal(catalog.strike.special,'none');
 assert.equal(effectAmount({...catalog.dodge,amount:0}),0);

@@ -30,7 +30,6 @@
 <main>
   <section class="table" aria-label="Игровой стол">
     <div class="table-top"><span id="scene-name" class="player-only"></span><span id="turn"></span><span id="turn-phase" class="player-only"></span><span class="debug-only">Три персонажа · растущая колода</span></div>
-    <div class="fighters">
       <div class="combat-hud player-only" aria-label="Показатели боя">
         <section class="identity hero-id" aria-label="Показатели: Искатель">
           <div class="name" id="hero-caption">Искатель</div>
@@ -46,6 +45,7 @@
         <div id="combat-effects" aria-hidden="true"></div>
         <span id="combat-announcement" class="sr-only" role="status" aria-live="polite"></span>
       </div>
+    <div class="fighters">
       <div id="hero-conditions" class="actor-statuses player-only" aria-label="Бонусы и малусы героя"></div>
       <div id="foe-conditions" class="actor-statuses player-only" aria-label="Бонусы и малусы противника"></div>
       <img id="hero-art" class="combatant-art hero-art player-only" src="assets/hero-investigator-full.png" alt="Искатель">
@@ -61,7 +61,7 @@
     </section>
     <p id="opponent-info" role="status"></p>
     <div id="result" role="status" hidden></div><button id="replay" hidden>Новое приключение</button>
-    <section id="reward" aria-labelledby="reward-title" hidden><h2 id="reward-title" aria-live="polite"></h2><p id="reward-progress" role="status"></p><p>Выберите карту. До подтверждения выбор можно изменить.</p><div id="reward-cards"></div><button id="skip-reward" class="secondary" type="button">Отказаться · +1 к размеру руки на следующий бой</button><button id="confirm-reward" type="button" disabled>Подтвердить выбор</button><section id="perk-choice" hidden><h3>Уровень 2 — выберите один перк</h3><p>Перк действует до конца приключения. Цветовые перки не усиливают уклонение.</p><div id="perk-options"></div><button id="confirm-perk" type="button" disabled>Подтвердить перк</button></section></section>
+    <section id="reward" aria-labelledby="reward-title" hidden><h2 id="reward-title" aria-live="polite"></h2><p id="reward-progress" role="status"></p><p>Выберите карту. До подтверждения выбор можно изменить.</p><div id="reward-cards"></div><button id="skip-reward" class="secondary" type="button">Отказаться · +1 к размеру руки на следующий бой</button><button id="confirm-reward" type="button" disabled>Подтвердить выбор</button><section id="perk-choice" hidden><h3>Уровень 2 — выберите один перк</h3><p>Три случайных перка этого уровня. Выберите один — он действует до конца приключения. Цветовые перки не усиливают уклонение.</p><div id="perk-options"></div><button id="confirm-perk" type="button" disabled>Подтвердить перк</button></section></section>
     <div class="hand-top debug-only"><h2>Ваша рука <span id="hand-count"></span></h2><div class="piles"><span id="deck-count"></span><span id="discard-count"></span></div></div>
     <div class="hand-area"><div class="instruction"><p id="hint">Выберите карту для розыгрыша.</p>
     <div class="payment"><span id="payment-status" aria-live="polite"></span><button id="cancel" class="quiet" hidden>Отмена</button></div></div>
@@ -75,5 +75,5 @@
     <section class="panel legend"><h2>Четыре вида карт</h2><p><i class="red"></i><span><b>Сила</b>Физическая атака и защита</span></p><p><i class="green"></i><span><b>Ловкость</b>Дальний бой и уклонение</span></p><p><i class="blue"></i><span><b>Интеллект</b>Магия, защита и лечение</span></p><p><i class="gray"></i><span><b>Универсальные</b>Любые эффекты</span></p><p class="muted">Любая карта оплачивает одну единицу стоимости. Если вся оплата того же цвета, что и сыгранная карта, её основной эффект увеличивается на 50% с округлением вниз. Числовой спецэффект удваивается. Серые карты, уклонение, бонусы и малусы не усиливаются.</p></section>
     <section class="panel"><h2>Журнал боя</h2><ol id="log" aria-live="polite"></ol></section>
   </aside>
-</main><script type="module" src="app.mjs?v=20260921-progression-3"></script>
+</main><script type="module" src="app.mjs?v=0.2.0"></script>
 </body></html>

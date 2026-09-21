@@ -10,6 +10,7 @@
 .actor-status.tooltip-dismissed .actor-status-tooltip{visibility:hidden;opacity:0}
 .actor-status:focus-visible{outline:2px solid #f5dda1;outline-offset:4px}
 .identity:has(.actor-status:is(:hover,:focus)){z-index:30}
+:root body[data-view="player"] .combat-hud:has(.actor-status:is(:hover,:focus)){z-index:45}
 :root body[data-view="player"] .stat-row .defenses{gap:12px;flex-shrink:0}
 #foe-conditions{flex-direction:row-reverse}
 @media(max-width:650px){
