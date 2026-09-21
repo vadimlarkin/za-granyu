@@ -5,7 +5,7 @@ import {createGame,paidEffect,play} from '../engine.mjs';
 import {cardFace} from '../card-face.mjs';
 const source=readFileSync(new URL('../cards.md',import.meta.url),'utf8');
 const catalog=parseCardsMarkdown(source);
-assert.equal(Object.keys(catalog).length,20);
+assert.equal(Object.keys(catalog).length,25);
 const legacy='## Карты\n| ID | Название | Цвет | Стоимость | Тип | Эффект | Сила | Копий |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n| hit | Удар | красный | 1 | Атака | Физическая атака | 2 | 3 |';
 assert.equal(parseCardsMarkdown(legacy).hit.rarity,'bronze');
 for(const [rarity,label] of Object.entries(RARITIES)){

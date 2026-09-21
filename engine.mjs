@@ -48,9 +48,9 @@ export function paidEffect(s, cardId, paymentIds) {
   const perkMatch=valid&&card.cost>=2&&perkColor===card.color&&payment.some(c=>s.cards[c.key].color===card.color);
   const boosted=!['none','dodge'].includes(card.effect)&&(allSame||perkMatch);
   const amount=Math.floor(effectAmount(card)*(boosted?1.5:1));
-  const specialBoosted=allSame&&['rob','draw','haste','surprise','confuse'].includes(card.special)&&specialAmount(card)>0;
+  const specialBoosted=allSame&&['rob','draw','haste','surprise','confuse','leftHook','combo','jab'].includes(card.special)&&specialAmount(card)>0;
   const special=specialAmount(card)*(specialBoosted?2:1);
-  return {amount,special,primaryBoosted:boosted,specialBoosted,boosted:boosted||specialBoosted,text:describe({...card,displayAmount:amount,specialAmount:special})};
+  return {amount,special,primaryBoosted:boosted,specialBoosted,boosted:boosted||specialBoosted,text:describe({...card,displayAmount:amount,paymentAmount:specialAmount(card),specialAmount:special})};
 }
 export const isStunned=actor=>(actor.confusion||0)+(actor.activeConfusion||0)>0;
 function damageTarget(game,target,amount,kind){
@@ -73,6 +73,7 @@ function addStun(game,source,target,amount){
  (target.stunLayers??=[]).push({amount,applied:false,source:source===game?'hero':'foe',expires:source.turn+1});
 }
 function finishActorTurn(game,actor){
+ actor.lastPlayedKey=null;
  actor.activeVigor=0;
  const source=actor===game?'hero':'foe',target=actor===game?game.enemy:game;
  target.stunLayers=(target.stunLayers||[]).filter(layer=>{
@@ -106,13 +107,16 @@ function playFor(game, actor, target, cardId, paymentIds) {
   const c=cardInHand(actor,instance), ids=new Set(paymentIds);
   if(ids.size!==c.cost || paymentIds.length!==c.cost || ids.has(cardId) || [...ids].some(id=>!actor.hand.some(c=>c.id===id))) throw Error('Выберите нужное число других карт для оплаты.');
   const effect=paidEffect(actor,cardId,paymentIds);
+  const comboReady=isStunned(target);
+  const leftBonus=c.special==='leftHook'&&actor.lastPlayedKey==='hit'?effect.special:0;
+  const paymentHooks=instance.key==='hit'?actor.hand.filter(x=>ids.has(x.id)&&actor.cards[x.key].special==='leftHook').map(x=>specialAmount(actor.cards[x.key])):[];
   const names=actor.hand.filter(c=>ids.has(c.id)).map(c=>actor.cards[c.key].name).join(', ');
   ids.add(cardId);
   actor.discard.push(...actor.hand.filter(c=>ids.has(c.id)).map(({id,key})=>({id,key}))); actor.hand=actor.hand.filter(c=>!ids.has(c.id));
   let outcome='';
   const surprise=c.special==='surprise'&&isStunned(target)?effect.special:0;
   if(['physical','magic','shot'].includes(c.effect)) {
-    damageTarget(game,target,effect.amount+surprise,c.effect);
+    damageTarget(game,target,effect.amount+surprise+leftBonus,c.effect);
   }
   else if(c.effect==='heal') {const healed=Math.min(actor.maxHp-actor.hp,effect.amount);actor.hp+=healed;if(healed)game.events.push({target:actor===game?'hero':'foe',kind:'heal',amount:healed});outcome=`Восстановлено здоровья: ${healed}.`;}
   else if(c.effect==='haste') actor.hand.forEach(card=>{card.discount=(card.discount||0)+effect.amount;});
@@ -124,7 +128,8 @@ function playFor(game, actor, target, cardId, paymentIds) {
   if(c.special==='fortify'&&actor.dodge>0)actor.stance=1;
   if(c.special==='confuse')addStun(game,actor,target,effect.special);
   if(c.special==='haste')actor.hand.forEach(card=>{card.discount=(card.discount||0)+effect.special;});
-  if(c.special==='draw'){
+  if(c.special==='jab'&&actor.stance)damageTarget(game,target,effect.special,'physical');
+  if(c.special==='draw'||c.special==='combo'&&comboReady){
     const count=drawCards(actor,effect.special,game.random);outcome+=` Добрано карт: ${count}.`;
   }
   if(c.special==='rob'){
@@ -139,6 +144,8 @@ function playFor(game, actor, target, cardId, paymentIds) {
   if(c.bonus==='vigor')actor.vigor=(actor.vigor||0)+c.bonusAmount;
   if(c.bonus==='stance')actor.stance=1;
   if(c.malus==='stun')addStun(game,actor,target,c.malusAmount);
+  for(const amount of paymentHooks){damageTarget(game,target,amount,'physical');outcome+=` Левый похоронный в оплате: отдельный удар ${amount} без усиления.`;}
+  actor.lastPlayedKey=instance.key;
   log(game,`${actor.name} — ${c.name}${effect.primaryBoosted?' · основной эффект +50%':''}${effect.specialBoosted?' · спецэффект ×2':''}: ${effect.text} Оплата: ${names||'не требуется'}. ${outcome}`.trim());
   if(!target.hp) {game.status=target===game?'lost':'won';log(game,game.status==='won'?'Победа! Противник повержен.':'Поражение. Можно начать новый бой.');}
 }
@@ -167,6 +174,10 @@ function chooseEnemyPlay(s){
       else if(card.effect==='dodge')utility=actor.dodge?0:3;
       else if(['armor','ward'].includes(card.effect))utility=Math.max(0,Math.min(n,4-actor[card.effect]));
       if(card.special==='draw')utility+=Math.min(effect.special,actor.deck.length+actor.discard.length+card.cost+1)*2;
+      if(card.special==='combo'&&isStunned(s))utility+=effect.special*2;
+      if(card.special==='leftHook'&&actor.lastPlayedKey==='hit')utility+=effect.special*3;
+      if(card.special==='jab'&&actor.stance)utility+=effect.special*3;
+      if(instance.key==='hit')utility+=payment.filter(x=>actor.cards[x.key].special==='leftHook').reduce((sum,x)=>sum+specialAmount(actor.cards[x.key])*3,0);
       if(card.special==='rob')utility+=Math.min(effect.special,s.hand.length)*3;
       if(card.special==='confuse')utility+=effect.special*1.5;
       if(card.special==='haste')utility+=others.filter(c=>!ids.includes(c.id)).reduce((v,c)=>v+Math.min(cardInHand(actor,c).cost,effect.special)*4,0);

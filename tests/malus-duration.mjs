@@ -3,6 +3,9 @@ import {readFileSync} from 'node:fs';
 import {parseCardsMarkdown} from '../catalog.mjs';
 import {createGame,play,endTurn,isStunned} from '../engine.mjs';
 const cards=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8'));
+// Isolated fixtures for the original surprise/stun rules, independent of authored card balance.
+cards.hit={...cards.hit,special:'surprise',specialAmount:1,malus:'none',malusAmount:0};
+cards.strike={...cards.strike,special:'none',specialAmount:0,malus:'stun',malusAmount:1};
 let s=createGame(0,4,()=>.5,cards);
 s.enemy.hand=[];s.enemy.deck=[];s.enemy.discard=[];
 s.hand=[{id:'stun',key:'strike'},{id:'a',key:'heal'},{id:'b',key:'haste'}];

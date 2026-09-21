@@ -1,4 +1,5 @@
 /* Shared raster card face for the hand, enemy reveal and debug view. */
+.material-card,.material-card *{box-sizing:border-box}
 :root body[data-view] .material-card{--plate-size:590.77%;--plate-y:0%;--rarity-ink:#fff0d6;--rarity-shadow:0 1px 3px #160900,0 0 5px #160900;--rarity-color:#c38c60;--frame-x:100%;--accent:#bcc3bf}
 :root body[data-view] .material-card.red{--frame-x:0%;--accent:#e85050}
 :root body[data-view] .material-card.green{--frame-x:33.333333%;--accent:#85c490}

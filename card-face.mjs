@@ -4,12 +4,16 @@ const colors={red:'Красная',green:'Зелёная',blue:'Синяя',gray
 const symbols={red:'◆',green:'▲',blue:'✦',gray:'●'};
 const labels={none:'',shot:'физического урона',physical:'физического урона',magic:'магического урона',armor:'физической защиты',ward:'магической защиты',heal:'здоровья',haste:'к стоимости',dodge:'атак избежать'};
 const uniqueArt=new Set(['rob','cheap-shot','maneuver','dirty-bandages','medkit','dirty-trick','tommy-gun','oblivion','ritual-circle','disarm']);
+const renamedArt={hit:'right-cross',strike:'bee-sting',dodge:'butterfly-step'};
+for(const id of ['left-hook','clever-feint','tight-guard','brass-knuckles','best-defense'])uniqueArt.add(id);
 export function applyCardAppearance(element,card){
  element.classList.add('material-card');
  element.dataset.rarity=card.rarity??'bronze';
- const id=card.id??card.key;
- element.classList.toggle('unique-art',uniqueArt.has(id));
- if(uniqueArt.has(id))element.style.setProperty('--unique-art',`url("./assets/cards/${id}-v1.png")`);
+ const key=card.id??card.key;
+ const id=renamedArt[key]??key;
+ const hasArt=uniqueArt.has(id)||Object.hasOwn(renamedArt,key);
+ element.classList.toggle('unique-art',hasArt);
+ if(hasArt)element.style.setProperty('--unique-art',`url("./assets/cards/${id}-v1.png")`);
  else element.style.removeProperty('--unique-art');
 }
 export function cardFace(card,{amount=effectAmount(card),special=specialAmount(card),state='',discount=false}={}){

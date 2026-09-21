@@ -25,8 +25,8 @@ s=fixture();s.cards.status={...s.cards.status,bonus:'none',malus:'none',special:
 play(s,'a',[]);assert.equal(s.vigor,2); // immediate special draw does not consume next-turn status
 s=fixture();s.enemy.cards.status={...s.cards.status,bonusAmount:1,malusAmount:2};s.enemy.hand=[{id:'enemy',key:'status'}];s.enemy.deck=[];s.enemy.discard=[];
 endTurn(s,()=>.5);assert.equal(s.enemy.vigor,0);assert.equal(s.enemy.activeVigor,1);assert.equal(s.vigor,0);assert.equal(s.confusion,0);assert.equal(s.hand.length,2);
-assert.match(describe(catalog.strike),/Оглушение 1/);
-assert.equal(catalog.strike.malus,'stun');assert.equal(catalog.strike.special,'none');
+assert.match(describe(catalog.hit),/Оглушение 1/);
+assert.equal(catalog.hit.malus,'stun');assert.equal(catalog.hit.special,'none');
 assert.equal(effectAmount({...catalog.dodge,amount:0}),0);
 assert.equal(effectAmount({...catalog.dodge,amount:3}),3);
 assert.throws(()=>parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8').replace('Оглушение | 1','Оглушение | -1')),/целые/);
