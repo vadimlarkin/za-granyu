@@ -6,14 +6,14 @@ import {parseCardsMarkdown} from '../catalog.mjs';
 import {createGame,endTurn} from '../engine.mjs';
 const cards=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8'));
 const expected={
- vagabond:['hit','strike','clever-feint','tight-guard','guard'],
+ vagabond:['hit','strike','clever-feint','tight-guard','guard','sucker-punch','spit','sidestep','poke'],
  robber:['dodge','shot','rob','maneuver'],
  cultist:['spark','ward'],
- gangster:['hit','strike','clever-feint','tight-guard','guard','dodge','shot','haste','rob','maneuver','heal','dirty-bandages'],
+ gangster:['hit','strike','clever-feint','tight-guard','guard','sucker-punch','spit','sidestep','poke','dodge','shot','haste','rob','maneuver','heal','dirty-bandages'],
  initiate:['dodge','shot','rob','maneuver','spark','ward'],
  hybrid:['spark','ward','fireball','oblivion'],
  'deep-one':['dodge','shot','rob','maneuver','spark','ward','fireball','oblivion'],
- grandmaster:['hit','strike','clever-feint','tight-guard','guard','dodge','shot','rob','maneuver','spark','ward','fireball','oblivion']
+ grandmaster:['hit','strike','clever-feint','tight-guard','guard','sucker-punch','spit','sidestep','poke','dodge','shot','rob','maneuver','spark','ward','fireball','oblivion']
 };
 for(const enemy of opponents){
  const wanted=expected[enemy.id].sort();

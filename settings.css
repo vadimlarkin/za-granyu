@@ -14,3 +14,10 @@
 #settings-drawer :focus-visible,#settings-open:focus-visible{outline:2px solid #f2d393;outline-offset:4px}
 @keyframes drawer-enter{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 @media(prefers-reduced-motion:reduce){#settings-drawer[open]{animation:none}#settings-sound:before{transition:none}}
+:root body #card-layout-debug-open{position:fixed;left:8px;bottom:8px;z-index:140;min-width:0;padding:5px 8px;border:1px solid #8a7758;border-radius:6px;background:#111a1ddb;color:#decba7;font:10px/1.2 system-ui;box-shadow:0 2px 8px #0008;cursor:pointer;opacity:.75}
+:root body #card-layout-debug-open:hover{opacity:1;background:#1d292c}
+:root body #card-layout-debug-dialog{width:min(1180px,96vw);height:min(760px,94dvh);max-width:none;max-height:none;padding:0;border:1px solid #8e7954;border-radius:12px;background:#11141a;color:#f0e4cd;box-shadow:0 24px 70px #000b;overflow:hidden}
+#card-layout-debug-dialog::backdrop{background:#020608b8}
+.card-layout-debug-heading{display:flex;align-items:center;justify-content:space-between;height:48px;padding:0 10px 0 18px;border-bottom:1px solid #343b46;background:#171c22}.card-layout-debug-heading h2{margin:0;font:18px Georgia,serif}:root body .card-layout-debug-heading button{width:34px;height:34px;padding:0;border:1px solid #65706f;border-radius:50%;background:none;color:#eee1ca;font:25px/1 system-ui;cursor:pointer}
+:root body #card-layout-debug-dialog iframe{display:block;width:100%;height:calc(100% - 48px);border:0;background:#11141a}
+#card-layout-debug-dialog :focus-visible,#card-layout-debug-open:focus-visible{outline:2px solid #f2d393;outline-offset:3px}

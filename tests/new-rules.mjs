@@ -4,7 +4,7 @@ import {parseCardsMarkdown} from '../catalog.mjs';
 import {createGame,play,paidEffect,endTurn,cardInHand} from '../engine.mjs';
 import {starterDeck,createReward,claimReward,REWARD_WEIGHTS} from '../rewards.mjs';
 const catalog=parseCardsMarkdown(readFileSync(new URL('../cards.md',import.meta.url),'utf8'));
-assert.equal(Object.keys(catalog).length,25);
+assert.equal(Object.keys(catalog).length,30);
 const initial=starterDeck(catalog);assert.equal(initial.length,10);assert.equal(new Set(initial).size,10);for(const color of ['red','green','blue'])assert.equal(initial.filter(id=>catalog[id].color===color).length,color==='green'?2:3);assert.equal(initial.filter(id=>catalog[id].color==='gray').length,2);
 assert.equal(catalog.strike.amount,2);assert.equal(catalog.strike.rarity,'bronze');
 assert.equal(catalog.dodge.amount,1);assert.equal(catalog.haste.cost,1);assert.equal(catalog.heal.cost,1);
@@ -44,5 +44,5 @@ s=setup('hit');s.hand=[];s.deck=Array.from({length:8},(_,i)=>({id:`p${i}`,key:'m
 let deck=initial;let reward=createReward(catalog,()=>.5);assert.equal(new Set(reward.choices).size,3);assert.throws(()=>claimReward(deck,reward,'missing'));deck=claimReward(deck,reward,reward.choices[0]);assert.equal(deck.length,11);assert.throws(()=>claimReward(deck,reward,reward.choices[1]));
 s=createGame(1,5,()=>.5,catalog,null,deck);assert.equal(s.hand.length+s.deck.length,11);assert.equal(s.enemy.hand.length+s.enemy.deck.length,10);
 const pool=Object.values(catalog).filter(c=>!c.copies),total=pool.reduce((n,c)=>n+REWARD_WEIGHTS[c.rarity],0);
-const seen=new Set();let offset=0;for(const card of pool){const weight=REWARD_WEIGHTS[card.rarity],ticket=(offset+weight/2)/total;seen.add(createReward(catalog,()=>ticket).choices[0]);offset+=weight;}assert.equal(seen.size,15);for(const key of initial)assert.ok(!seen.has(key));
-console.log('PASS: 25 cards, starter deck, shooting, dodge, discounts, confusion on both sides, theft, draws, rewards and retained collection');
+const seen=new Set();let offset=0;for(const card of pool){const weight=REWARD_WEIGHTS[card.rarity],ticket=(offset+weight/2)/total;seen.add(createReward(catalog,()=>ticket).choices[0]);offset+=weight;}assert.equal(seen.size,20);for(const key of initial)assert.ok(!seen.has(key));
+console.log('PASS: 30 cards, starter deck, shooting, dodge, discounts, confusion on both sides, theft, draws, rewards and retained collection');

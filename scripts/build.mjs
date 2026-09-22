@@ -3,9 +3,10 @@ import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const dest = join(root, 'dist');
-rmSync(dest, { recursive: true, force: true });
+rmSync(dest, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 mkdirSync(dest);
 for (const name of readdirSync(root)) {
+  if (name === 'card-layout-debug.mjs') continue;
   if (name === 'index.html' || name === 'cards.md' || /\.(css|mjs)$/.test(name)) cpSync(join(root, name), join(dest, name));
 }
 cpSync(join(root, 'assets'), join(dest, 'assets'), {
@@ -13,4 +14,5 @@ cpSync(join(root, 'assets'), join(dest, 'assets'), {
   filter: source => !source.split('/').some(part => part.startsWith('.'))
 });
 writeFileSync(join(dest, '.nojekyll'), '');
+writeFileSync(join(dest, 'card-layout-debug.mjs'), 'export function initCardLayoutDebug(){return false;}\n');
 console.log('Игра собрана в dist/');

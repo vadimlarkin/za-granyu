@@ -1,5 +1,5 @@
 import {enemyDeck} from './enemy-decks.mjs';
-import {describe,effectAmount,specialAmount} from './catalog.mjs';
+import {describe,effectAmount,specialAmount} from './catalog.mjs?v=20260922-street-cards-1';
 import {PERKS} from './progression.mjs';
 export const limit = s => Math.min(3 + s.turn - 1 + (s.handBonus||0)+(s.perk==='reserve'&&s.turn===1?1:0), s.cap);
 function shuffle(cards, random) { for(let i=cards.length-1;i>0;i--) {const j=Math.floor(random()*(i+1)); [cards[i],cards[j]]=[cards[j],cards[i]];} return cards; }
@@ -25,7 +25,7 @@ export function createGame(level=0, cap=4+level, random=Math.random, catalog, op
     const keys=collection??Object.keys(cards).flatMap(key=>Array(cards[key].copies??1).fill(key));
     if(keys.some(key=>!cards[key]))throw Error('В колоде есть неизвестная карта.');
     const deck=keys.map((key,i)=>({id:`${name}-${key}-${i}`,key}));
-    return {name,cards,level,cap,turn:1,hp:10,maxHp:10,armor:0,ward:0,dodge:0,dodgeLayers:[],stunLayers:[],confusion:0,vigor:0,activeConfusion:0,activeVigor:0,stance:0,hand:[],deck:shuffle(deck,random),discard:[],log:messages};
+    return {name,cards,level,cap,turn:1,hp:10,maxHp:10,armor:0,ward:0,dodge:0,dodgeLayers:[],stunLayers:[],confusion:0,blind:0,vigor:0,activeConfusion:0,activeVigor:0,stance:0,hand:[],deck:shuffle(deck,random),discard:[],log:messages};
   }
   const s=actor('Игрок',collection);s.handBonus=handBonus?1:0;s.cap+=s.handBonus;s.status='playing';s.events=[];s.random=random;s.transferId=0;s.enemy=actor(opponent?.name || 'Страж',opponent?enemyDeck(catalog,opponent.type):null);
   if(opponent)Object.assign(s.enemy,{level:opponent.level,cap:opponent.cap,hp:opponent.hp,maxHp:opponent.hp,type:opponent.type});
@@ -48,11 +48,12 @@ export function paidEffect(s, cardId, paymentIds) {
   const perkMatch=valid&&card.cost>=2&&perkColor===card.color&&payment.some(c=>s.cards[c.key].color===card.color);
   const boosted=!['none','dodge'].includes(card.effect)&&(allSame||perkMatch);
   const amount=Math.floor(effectAmount(card)*(boosted?1.5:1));
-  const specialBoosted=allSame&&['rob','draw','haste','surprise','confuse','leftHook','combo','jab'].includes(card.special)&&specialAmount(card)>0;
+  const specialBoosted=allSame&&['rob','draw','haste','surprise','confuse','leftHook','combo','jab','series'].includes(card.special)&&specialAmount(card)>0;
   const special=specialAmount(card)*(specialBoosted?2:1);
   return {amount,special,primaryBoosted:boosted,specialBoosted,boosted:boosted||specialBoosted,text:describe({...card,displayAmount:amount,paymentAmount:specialAmount(card),specialAmount:special})};
 }
 export const isStunned=actor=>(actor.confusion||0)+(actor.activeConfusion||0)>0;
+export const isBlinded=actor=>(actor.blind||0)>0;
 function damageTarget(game,target,amount,kind){
  const side=target===game?'hero':'foe';
  if(target.dodge>0&&kind!=='shot'){
@@ -81,8 +82,9 @@ function finishActorTurn(game,actor){
   const field=layer.applied?'activeConfusion':'confusion';target[field]=Math.max(0,(target[field]||0)-layer.amount);return false;
  });
  const expired=(actor.dodgeLayers||[]).filter(x=>x.expires<=actor.turn).reduce((n,x)=>n+x.amount,0);
- actor.dodge=Math.max(0,actor.dodge-expired);
- actor.dodgeLayers=(actor.dodgeLayers||[]).filter(x=>x.expires>actor.turn&&x.amount>0);
+  actor.dodge=Math.max(0,actor.dodge-expired);
+  actor.dodgeLayers=(actor.dodgeLayers||[]).filter(x=>x.expires>actor.turn&&x.amount>0);
+  actor.blind=Math.max(0,(actor.blind||0)-1);
 }
 function startActorTurn(game,actor,random){
  if(!actor.stance)actor.armor=0;
@@ -105,10 +107,12 @@ function playFor(game, actor, target, cardId, paymentIds) {
   const instance=actor.hand.find(c=>c.id===cardId);
   if(!instance) throw Error('Карта отсутствует в руке.');
   const c=cardInHand(actor,instance), ids=new Set(paymentIds);
+  if(isBlinded(actor)&&c.effect==='shot')throw Error('Ослепление не позволяет разыграть выстрел.');
   if(ids.size!==c.cost || paymentIds.length!==c.cost || ids.has(cardId) || [...ids].some(id=>!actor.hand.some(c=>c.id===id))) throw Error('Выберите нужное число других карт для оплаты.');
   const effect=paidEffect(actor,cardId,paymentIds);
   const comboReady=isStunned(target);
   const leftBonus=c.special==='leftHook'&&actor.lastPlayedKey==='hit'?effect.special:0;
+  const seriesBonus=c.special==='series'&&actor.hand.some(x=>ids.has(x.id)&&x.key===instance.key)?effect.special:0;
   const paymentHooks=instance.key==='hit'?actor.hand.filter(x=>ids.has(x.id)&&actor.cards[x.key].special==='leftHook').map(x=>specialAmount(actor.cards[x.key])):[];
   const names=actor.hand.filter(c=>ids.has(c.id)).map(c=>actor.cards[c.key].name).join(', ');
   ids.add(cardId);
@@ -116,7 +120,7 @@ function playFor(game, actor, target, cardId, paymentIds) {
   let outcome='';
   const surprise=c.special==='surprise'&&actor.dodge>0?effect.special:0;
   if(['physical','magic','shot'].includes(c.effect)) {
-    damageTarget(game,target,effect.amount+surprise+leftBonus,c.effect);
+    damageTarget(game,target,effect.amount+surprise+leftBonus+seriesBonus,c.effect);
   }
   else if(c.effect==='heal') {const healed=Math.min(actor.maxHp-actor.hp,effect.amount);actor.hp+=healed;if(healed)game.events.push({target:actor===game?'hero':'foe',kind:'heal',amount:healed});outcome=`Восстановлено здоровья: ${healed}.`;}
   else if(c.effect==='haste') actor.hand.forEach(card=>{card.discount=(card.discount||0)+effect.amount;});
@@ -144,6 +148,7 @@ function playFor(game, actor, target, cardId, paymentIds) {
   if(c.bonus==='vigor')actor.vigor=(actor.vigor||0)+c.bonusAmount;
   if(c.bonus==='stance')actor.stance=1;
   if(c.malus==='stun')addStun(game,actor,target,c.malusAmount);
+  if(c.malus==='blind')target.blind=(target.blind||0)+c.malusAmount;
   for(const amount of paymentHooks){damageTarget(game,target,amount,'physical');outcome+=` Левый похоронный в оплате: отдельный удар ${amount} без усиления.`;}
   actor.lastPlayedKey=instance.key;
   log(game,`${actor.name} — ${c.name}${effect.primaryBoosted?' · основной эффект +50%':''}${effect.specialBoosted?' · спецэффект ×2':''}: ${effect.text} Оплата: ${names||'не требуется'}. ${outcome}`.trim());
@@ -154,6 +159,7 @@ function chooseEnemyPlay(s){
   const actor=s.enemy;let best=null;
   for(const instance of actor.hand){
     const card=cardInHand(actor,instance);
+    if(isBlinded(actor)&&card.effect==='shot')continue;
     const others=actor.hand.filter(c=>c.id!==instance.id);
     if(others.length<card.cost)continue;
     const value=c=>{const d=cardInHand(actor,c);return d.effect==='haste'?20:d.amount/(d.cost+1);};
@@ -183,6 +189,7 @@ function chooseEnemyPlay(s){
       if(card.special==='haste')utility+=others.filter(c=>!ids.includes(c.id)).reduce((v,c)=>v+Math.min(cardInHand(actor,c).cost,effect.special)*4,0);
       if(card.bonus==='vigor')utility+=card.bonusAmount*2;
       if(card.malus==='stun')utility+=card.malusAmount*1.5;
+      if(card.malus==='blind')utility+=card.malusAmount*1.5;
       if(card.special==='surprise'&&actor.dodge>0)utility+=effect.special*3;
       if((card.special==='fortify'&&actor.dodge>0||card.bonus==='stance')&&!actor.stance)utility+=2;
       const score=utility/(card.cost+1)-payment.reduce((v,c)=>v+value(c)*.03,0);

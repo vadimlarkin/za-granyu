@@ -1,14 +1,16 @@
 import {positionCombatant} from './combat-layout.mjs?v=4';
 import {characters} from './characters.mjs?v=4';
-import {hasPlayableCard} from './turn-flow.mjs';
+import {hasPlayableCard} from './turn-flow.mjs?v=20260922-street-cards-1';
 import {intro,encounterStory,ending,locations,encounterLocation} from './story.mjs?v=20260921-port-enemies-1';
 import {starterDeck,createReward,previewReward,confirmReward,rewardResolved} from './rewards.mjs?v=progression-2';
 import {createCampaign,currentOpponent,advanceCampaign} from './campaign.mjs?v=20260921-swing-5';
-import {createGame,play,enemyTurn,limit,paidEffect,cardInHand} from './engine.mjs';
-import {parseCardsMarkdown,RARITIES,describeParts,effectAmount} from './catalog.mjs?v=20260922-preview-1';
-import {cardFace,applyCardAppearance} from './card-face.mjs?v=20260921-new-art-1';
+import {createGame,play,enemyTurn,limit,paidEffect,cardInHand,isBlinded} from './engine.mjs?v=20260922-street-cards-1';
+import {parseCardsMarkdown,RARITIES,describeParts,effectAmount} from './catalog.mjs?v=20260922-street-cards-1';
+import {cardFace,applyCardAppearance} from './card-face.mjs?v=20260922-street-cards-1';
 import {createSound} from './audio.mjs';
-import {renderStatuses} from './statuses.mjs';
+import {renderStatuses} from './statuses.mjs?v=20260922-street-cards-1';
+import {groupCatalogCards} from './card-catalog.mjs';
+import {initCardLayoutDebug} from './card-layout-debug.mjs?v=1';
 import {PERKS,newProgress,creditVictory,needsPerk,choosePerk,perkChoices,XP_THRESHOLDS} from './progression.mjs';
 const boostLabel=e=>[e.primaryBoosted?"Эффект +50%":"",e.specialBoosted?"Спецэффект ×2":""].filter(Boolean).join(" · ");
 const sound=createSound();
@@ -22,6 +24,7 @@ async function loadCatalog(){
 }
 const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $=id=>document.getElementById(id);
+initCardLayoutDebug();
 function renderSound(){const button=$('sound');button.textContent=sound.enabled?'Звук: вкл.':'Звук: выкл.';button.setAttribute('aria-pressed',String(sound.enabled));$('settings-sound').checked=sound.enabled;}
 $('sound').onclick=()=>{sound.toggle();renderSound();};renderSound();
 $('settings-sound').onchange=()=>{if($('settings-sound').checked!==sound.enabled)sound.toggle();renderSound();};
@@ -81,6 +84,47 @@ function showCardPreview(instance,card,effect){
 }
 function hideCardPreview(force=false){if(touchPreviewId&&!force)return;$('card-preview').hidden=true;$('card-preview-card').replaceChildren();}
 $('card-preview-close').onclick=()=>{touchPreviewId=null;hideCardPreview(true);};
+
+function renderCatalogDetail(card){
+ const detail=$('card-catalog-detail');
+ detail.replaceChildren();
+ if(!card)return;
+ const title=document.createElement('h2'),meta=document.createElement('p'),parts=document.createElement('div');
+ title.textContent=card.name;meta.className='catalog-detail-meta';meta.textContent=`${colors[card.color]} · ${RARITIES[card.rarity]} · Стоимость ${card.cost}`;
+ parts.className='catalog-detail-parts';
+ parts.replaceChildren(...describeParts(card).map(part=>{
+  const item=document.createElement('section');item.className=`catalog-detail-part ${part.kind}`;
+  const heading=document.createElement('h3'),copy=document.createElement('p');heading.textContent=part.title;copy.textContent=part.text;item.append(heading,copy);return item;
+ }));
+ detail.append(title,meta,parts);
+}
+function renderCardCatalog(){
+ const groups=groupCatalogCards(catalog),list=$('card-catalog-list');
+ $('card-catalog-count').textContent=`${Object.keys(catalog).length} карт · сначала цвет, затем редкость`;
+ list.replaceChildren(...groups.map(group=>{
+  const section=document.createElement('section');section.className=`card-catalog-group ${group.color}`;
+  const heading=document.createElement('h2');heading.textContent=group.label;
+  const grid=document.createElement('div');grid.className='card-catalog-grid';
+  grid.replaceChildren(...group.cards.map(card=>{
+   const button=document.createElement('button');button.type='button';button.className=`card material-card catalog-card ${card.color}`;
+   const artIndex=artKeys.includes(card.id)?artKeys.indexOf(card.id):(effectArt[card.effect]??0);
+   button.style.setProperty('--art-x',`${artIndex%5*25}%`);button.style.setProperty('--art-y',artIndex<5?'0%':'100%');
+   applyCardAppearance(button,card);button.innerHTML=cardFace(card,{compact:true,state:RARITIES[card.rarity]});
+   button.setAttribute('aria-label',`${card.name}. ${RARITIES[card.rarity]}. Открыть описание.`);
+   button.onclick=()=>{renderCatalogDetail(card);button.focus();};return button;
+  }));
+  section.append(heading,grid);return section;
+ }));
+ renderCatalogDetail(groups[0]?.cards[0]);
+}
+async function showCatalog(){
+ try{
+  if(!catalog)catalog=await loadCatalog();
+  renderCardCatalog();setScreen('catalog');$('card-catalog-title').focus();sound.play('click');
+ }catch(error){
+  $('story-error').textContent=`Не удалось открыть каталог: ${error.message}`;
+ }
+}
 
 const TUTORIAL_KEY='cardgame.tutorial.v1';
 const tutorialSteps={
@@ -260,8 +304,8 @@ function render(){
   $('player-deck-count').textContent=state.deck.length;$('player-discard-count').textContent=state.discard.length;$('level-label').textContent=`Уровень ${state.level}`;
   $('hp').textContent=`${state.hp} / ${state.maxHp}`;$('hp-meter').max=state.maxHp;$('hp-meter').value=state.hp;
   $('enemy-hp').textContent=`${state.enemy.hp} / ${state.enemy.maxHp}`;$('enemy-meter').max=state.enemy.maxHp;$('enemy-meter').value=state.enemy.hp;
-  $('defenses').textContent=`Физ. защита ${state.armor} · Маг. защита ${state.ward} · Уклонение ${state.dodge} · Оглушение ${state.confusion}`;
-  $('intent').textContent=state.status==='playing'?`Физ. защита ${state.enemy.armor} · Маг. защита ${state.enemy.ward} · Уклонение ${state.enemy.dodge} · Оглушение ${state.enemy.confusion}`:'Бой завершён';
+  $('defenses').textContent=`Физ. защита ${state.armor} · Маг. защита ${state.ward} · Уклонение ${state.dodge} · Оглушение ${state.confusion} · Ослепление ${state.blind||0}`;
+  $('intent').textContent=state.status==='playing'?`Физ. защита ${state.enemy.armor} · Маг. защита ${state.enemy.ward} · Уклонение ${state.enemy.dodge} · Оглушение ${state.enemy.confusion} · Ослепление ${state.enemy.blind||0}`:'Бой завершён';
   $('enemy-piles').textContent=`Рука: ${state.enemy.hand.length} · Колода: ${state.enemy.deck.length} · Сброс: ${state.enemy.discard.length}`;
   $('hand-count').textContent=`${state.hand.length} / ${limit(state)}`;$('deck-count').textContent=`Колода: ${state.deck.length}`;$('discard-count').textContent=`Сброс: ${state.discard.length}`;
   const card=selected?cardInHand(state,state.hand.find(c=>c.id===selected)):null;
@@ -271,15 +315,16 @@ function render(){
   $('hand').style.setProperty('--hand-count',String(state.hand.length));
   $('hand').replaceChildren(...state.hand.map(instance=>{
     const c=cardInHand(state,instance), button=document.createElement('button');
+    const blockedByBlind=isBlinded(state)&&c.effect==='shot';
     button.className=`card ${c.color}${selected===instance.id?' selected':''}${payment.has(instance.id)?' paying':''}`;
-    button.disabled=enemyBusy||state.status!=='playing'||(!selected&&state.hand.length<c.cost+1);
+    button.disabled=enemyBusy||state.status!=='playing'||(!selected&&(state.hand.length<c.cost+1||blockedByBlind));
     button.setAttribute('aria-pressed',String(selected===instance.id||payment.has(instance.id)));
     button.setAttribute('aria-label',`${c.name}, ${colors[c.color]}, стоимость ${c.cost}. ${selected===instance.id?effect.text:c.text}${payment.has(instance.id)?', в оплату':''}`);
     const artIndex=artKeys.includes(instance.key)?artKeys.indexOf(instance.key):effectArt[c.effect];
     button.style.setProperty('--art-x',`${artIndex%5*25}%`);
     button.style.setProperty('--art-y',artIndex<5?'0%':'100%');
     button.title=selected===instance.id?effect.text:c.text;
-    const badge=selected===instance.id?'Разыграть':payment.has(instance.id)?'✓ В оплату':selected?'Выбрать в оплату':state.hand.length<c.cost+1?'Не хватает карт':'Выбрать карту';
+    const badge=selected===instance.id?'Разыграть':payment.has(instance.id)?'✓ В оплату':selected?'Выбрать в оплату':blockedByBlind?'Ослепление':state.hand.length<c.cost+1?'Не хватает карт':'Выбрать карту';
     applyCardAppearance(button,c);
     button.classList.toggle('empowered',selected===instance.id&&effect.boosted);
     button.innerHTML=cardFace(c,{amount:selected===instance.id?effect.amount:effectAmount(c),special:selected===instance.id?effect.special:undefined,state:badge==='Выбрать карту'?'':badge,discount:instance.discount,compact:true});
@@ -370,8 +415,9 @@ async function runEnemyTurn(){
 let storyPhase='title';
 function setScreen(screen){
  document.body.dataset.screen=screen;
- $('story-screen').hidden=screen==='combat'||screen==='characters';
+ $('story-screen').hidden=['combat','characters','catalog'].includes(screen);
  $('character-screen').hidden=screen!=='characters';
+ $('card-catalog-screen').hidden=screen!=='catalog';
  document.querySelector('main').inert=screen!=='combat';
  document.querySelector('header').inert=screen!=='combat';
  renderTutorial();
@@ -399,6 +445,8 @@ $('story-next').onclick=async()=>{
  else if(storyPhase==='ending')showTitle();
  else {setScreen('combat');sound.play('draw');$('end').focus();}
 };
+$('story-catalog').onclick=showCatalog;
+$('card-catalog-back').onclick=showTitle;
 function renderCharacters(){
  $('character-options').replaceChildren(...characters.map(character=>{
   const button=document.createElement('button');button.type='button';button.className='character-option '+character.color;

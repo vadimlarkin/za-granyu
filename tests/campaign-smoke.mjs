@@ -12,7 +12,7 @@ for(const opponent of opponents)for(const perk of [null,...PERKS.map(p=>p.id)])f
  const count=()=>[s,s.enemy].flatMap(a=>[...a.hand,...a.deck,...a.discard]);const total=count().length;
  for(let turn=0;turn<30&&s.status==='playing';turn++){
   for(let move=0;move<50&&s.status==='playing';move++){
-   const available=s.hand.filter(c=>cardInHand(s,c).cost<s.hand.length);
+   const available=s.hand.filter(c=>{const card=cardInHand(s,c);return card.cost<s.hand.length&&!(s.blind>0&&card.effect==='shot');});
    if(!available.length)break;
    const chosen=available[Math.floor(random()*available.length)],card=cardInHand(s,chosen);
    const others=s.hand.filter(c=>c!==chosen).sort((a,b)=>(s.cards[b.key].color===card.color)-(s.cards[a.key].color===card.color));
@@ -21,7 +21,7 @@ for(const opponent of opponents)for(const perk of [null,...PERKS.map(p=>p.id)])f
   }
   endTurn(s,random);
   assert.equal(count().length,total);assert.equal(new Set(count().map(c=>c.id)).size,total);
-  for(const actor of [s,s.enemy])for(const key of ['hp','armor','ward','dodge','confusion','vigor'])assert.ok(Number.isFinite(actor[key])&&actor[key]>=0,`${opponent.id}: ${key}`);
+  for(const actor of [s,s.enemy])for(const key of ['hp','armor','ward','dodge','confusion','blind','vigor'])assert.ok(Number.isFinite(actor[key])&&actor[key]>=0,`${opponent.id}: ${key}`);
  }
  battles++;if(s.status!=='playing')completed++;
 }

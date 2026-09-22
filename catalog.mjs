@@ -1,21 +1,22 @@
 export const RARITIES={bronze:'Бронзовая',silver:'Серебряная',gold:'Золотая',purple:'Фиолетовая',diamond:'Алмазная'};
 export const EFFECTS={physical:'Физическая атака',magic:'Магическая атака',armor:'Физическая защита',ward:'Магическая защита',heal:'Лечение',dodge:'Уклонение',haste:'Снижение стоимости',shot:'Выстрел',none:'Нет'};
-export const SPECIALS={none:'Нет',rob:'Грабёж',confuse:'Оглушение',cheap:'Пониженная стоимость',draw:'Добор',haste:'Снижение стоимости',surprise:'Неожиданный удар',fortify:'Укрепление',leftHook:'Левый похоронный',combo:'Комбинация',jab:'Джеб'};
+export const SPECIALS={none:'Нет',rob:'Грабёж',confuse:'Оглушение',cheap:'Пониженная стоимость',draw:'Добор',haste:'Снижение стоимости',surprise:'Неожиданный удар',fortify:'Укрепление',leftHook:'Левый похоронный',combo:'Комбинация',jab:'Джеб',series:'Серия'};
 export const BONUSES={none:'Нет',vigor:'Бодрость духа',stance:'Оборонительная стойка'};
-export const MALUSES={none:'Нет',stun:'Оглушение'};
+export const MALUSES={none:'Нет',stun:'Оглушение',blind:'Ослепление'};
 export const specialAmount=c=>c.specialAmount??(c.special==='draw'?2:c.special==='none'?0:1);
 export function effectAmount(c){return c.amount;}
 export function describeParts(c){
  const n=c.displayAmount??effectAmount(c);
  const primary={none:'',shot:`Наносит ${n} физического урона. Сначала расходует магическую, затем физическую защиту. Игнорирует уклонение.`,physical:`Наносит ${n} физического урона. Урон уменьшает физическая защита; уклонение предотвращает весь удар.`,magic:`Наносит ${n} магического урона. Урон уменьшает магическая защита; уклонение предотвращает весь удар.`,armor:`Даёт ${n} физической защиты. Она расходуется, поглощая физический урон, и исчезает в начале следующего своего хода. Оборонительная стойка сохраняет остаток до конца боя.`,ward:`Даёт ${n} магической защиты. Она расходуется, поглощая магический урон и урон выстрелов, и исчезает в начале следующего своего хода.`,heal:`Восстанавливает ${n} здоровья, но не выше максимума.`,haste:`Уменьшает стоимость всех остальных карт в текущей руке на ${n}, но не ниже 0. Скидка исчезает, когда карта сыграна или сброшена.`,dodge:n===1?'Предотвращает следующую атаку целиком, кроме выстрела. Неиспользованное уклонение исчезает в конце следующего своего хода.':`Предотвращает следующие ${n} атаки целиком, кроме выстрелов. Неиспользованное уклонение исчезает в конце следующего своего хода.`}[c.effect];
  const x=specialAmount(c);
- const special={none:'',rob:`Переносит до ${x} случайных карт из руки противника в вашу руку на текущий бой. Если карт меньше, переносит все.`,confuse:`В начале следующего хода противник сбрасывает до ${x} случайных карт из руки.`,cheap:'Пониженная стоимость уже учтена в цене карты.',draw:`Немедленно добирает ${x} карт, даже сверх предела руки. Если колода пуста, сначала перемешивает сброс.`,haste:`Уменьшает стоимость остальных карт в текущей руке на ${x}, но не ниже 0. Скидка исчезает, когда карта сыграна или сброшена.`,surprise:`Если у атакующего действует уклонение, добавляет ${x} урона к основному удару до применения защиты. Уклонение при этом не расходуется.`,fortify:'Если у владельца действует уклонение, включает оборонительную стойку: остаток физической защиты сохраняется между ходами до конца боя.',leftHook:`Если разыграна сразу после «Правого коронного» в том же ходу, добавляет ${x} урона к основному удару. Если сброшена в оплату «Правого коронного», наносит отдельный удар ${c.paymentAmount??c.specialAmount??4} без усиления — это физический урон.`,combo:`Если противник уже оглушён до розыгрыша карты, немедленно добирает ${x} карт.`,jab:`Если действует оборонительная стойка, наносит ${x} физического урона.`}[c.special??'none'];
+ const special={none:'',rob:`Переносит до ${x} случайных карт из руки противника в вашу руку на текущий бой. Если карт меньше, переносит все.`,confuse:`В начале следующего хода противник сбрасывает до ${x} случайных карт из руки.`,cheap:'Пониженная стоимость уже учтена в цене карты.',draw:`Немедленно добирает ${x} карт, даже сверх предела руки. Если колода пуста, сначала перемешивает сброс.`,haste:`Уменьшает стоимость остальных карт в текущей руке на ${x}, но не ниже 0. Скидка исчезает, когда карта сыграна или сброшена.`,surprise:`Если у атакующего действует уклонение, добавляет ${x} урона к основному удару до применения защиты. Уклонение при этом не расходуется.`,fortify:'Если у владельца действует уклонение, включает оборонительную стойку: остаток физической защиты сохраняется между ходами до конца боя.',leftHook:`Если разыграна сразу после «Правого коронного» в том же ходу, добавляет ${x} урона к основному удару. Если сброшена в оплату «Правого коронного», наносит отдельный удар ${c.paymentAmount??c.specialAmount??4} без усиления — это физический урон.`,combo:`Если противник уже оглушён до розыгрыша карты, немедленно добирает ${x} карт.`,jab:`Если действует оборонительная стойка, наносит ${x} физического урона.`,series:`Если в оплату сброшена ещё одна копия «${c.name}», наносит ещё ${x} физического урона. Дополнительный удар получает усиление одноцветной оплаты.`}[c.special??'none'];
  const parts=[];
  if(primary)parts.push({kind:'effect',title:`${EFFECTS[c.effect]} ${n}`,text:primary});
  if(special)parts.push({kind:'special',title:`${SPECIALS[c.special]}${['fortify','cheap'].includes(c.special)?'':` ${x}`}`,text:special});
  if(c.bonus==='vigor')parts.push({kind:'bonus',title:`Бодрость духа ${c.bonusAmount}`,text:`Увеличивает добор в конце текущего хода на ${c.bonusAmount}. После срабатывания бонус расходуется.`});
  if(c.bonus==='stance')parts.push({kind:'bonus',title:'Оборонительная стойка',text:'Сохраняет остаток физической защиты между ходами до конца боя. Повторное получение стойки её не усиливает.'});
  if(c.malus==='stun')parts.push({kind:'malus',title:`Оглушение ${c.malusAmount}`,text:`В начале следующего хода противник сбрасывает до ${c.malusAmount} случайных карт из руки. Если карт меньше, сбрасывает все; повторного добора нет.`});
+ if(c.malus==='blind')parts.push({kind:'malus',title:`Ослепление ${c.malusAmount}`,text:`Противник не может разыгрывать карты с эффектом «Выстрел» следующие ${c.malusAmount} своих ходов.`});
  return parts;
 }
 export function describe(c){
@@ -55,6 +56,7 @@ export function parseCardsMarkdown(markdown){
  const rows=[];let header=false,separator=false,columnCount=8;
  const modern='ID|Название|Цвет|Стартовая колода|Стоимость|Эффект|Коэффициент эффекта|Сила|Спецэффект|Редкость';
  const statusHeader='ID|Название|Цвет|Стартовая колода|Стоимость|Эффект|Сила|Спецэффект|Сила спецэффекта|Бонус|Сила бонуса|Малус|Сила малуса|Редкость';
+ const typedStatusHeader='ID|Название|Цвет|Тип|Стартовая колода|Стоимость|Эффект|Сила|Спецэффект|Сила спецэффекта|Бонус|Сила бонуса|Малус|Сила малуса|Редкость';
  const specialLabels=Object.fromEntries(Object.entries(SPECIALS).map(([k,v])=>[v.toLowerCase(),k]));
  Object.assign(specialLabels,{'смятение':'confuse','добрать карту':'draw'});
  Object.assign(rarities,{'бронза':'bronze','серебро':'silver','золото':'gold'});
@@ -63,18 +65,18 @@ export function parseCardsMarkdown(markdown){
   const line=lines[i].trim();if(/^##\s/.test(line))break;if(!line)continue;
   if(!line.startsWith('|'))throw Error(`cards.md, строка ${i+1}: ожидается строка таблицы, начинающаяся с |.`);
   const cells=split(line);
-  if(!header){if(![modern,statusHeader,'ID|Название|Цвет|Стоимость|Тип|Эффект|Сила|Копий','ID|Название|Цвет|Стоимость|Тип|Эффект|Сила|Копий|Редкость'].includes(cells.join('|')))throw Error(`cards.md, строка ${i+1}: сохраните исходные названия и порядок столбцов.`);columnCount=cells.length;header=true;continue;}
+  if(!header){if(![modern,statusHeader,typedStatusHeader,'ID|Название|Цвет|Стоимость|Тип|Эффект|Сила|Копий','ID|Название|Цвет|Стоимость|Тип|Эффект|Сила|Копий|Редкость'].includes(cells.join('|')))throw Error(`cards.md, строка ${i+1}: сохраните исходные названия и порядок столбцов.`);columnCount=cells.length;header=true;continue;}
   if(!separator){if(cells.length!==columnCount||!cells.every(c=>/^:?-{3,}:?$/.test(c)))throw Error(`cards.md, строка ${i+1}: неверная строка разделителя таблицы.`);separator=true;continue;}
   if(cells.length!==columnCount)throw Error(`cards.md, строка ${i+1}: нужно ${columnCount} столбцов. Не используйте символ | внутри значений.`);
-  if(columnCount===14){
-   const [id,name,color,starter,cost,effect,amount,special,strength,bonus,bonusStrength,malus,malusStrength,rarity]=cells;
+  if(columnCount===14||columnCount===15){
+   const [id,name,color,cardType,starter,cost,effect,amount,special,strength,bonus,bonusStrength,malus,malusStrength,rarity]=columnCount===15?cells:[...cells.slice(0,3),'',...cells.slice(3)];
    if(!['да','нет'].includes(starter.toLowerCase()))throw Error(`Карта ${name}: стартовая колода — да или нет.`);
    if(![cost,amount,strength,bonusStrength,malusStrength].every(v=>/^\d+$/.test(v)))throw Error(`Карта ${name}: нужны целые неотрицательные числа.`);
    const bonusId=Object.keys(BONUSES).find(k=>BONUSES[k].toLowerCase()===bonus.toLowerCase()),malusId=Object.keys(MALUSES).find(k=>MALUSES[k].toLowerCase()===malus.toLowerCase());
    if(!bonusId||!malusId)throw Error(`Карта ${name}: неизвестный бонус или малус.`);
    if(!Object.hasOwn(rarities,rarity.toLowerCase()))throw Error(`Карта ${name}: неизвестная редкость.`);
    if(!Object.hasOwn(specialLabels,special.toLowerCase()))throw Error(`Карта ${name}: неизвестный спецэффект.`);
-   rows.push({id,name,color:colors[color.toLowerCase()],cost:Number(cost),kind:effect==='Нет'?special:effect,effect:effects[effect.toLowerCase()],amount:Number(amount),special:specialLabels[special.toLowerCase()],specialAmount:Number(strength),bonus:bonusId,bonusAmount:Number(bonusStrength),malus:malusId,malusAmount:Number(malusStrength),rarity:rarities[rarity.toLowerCase()],copies:starter.toLowerCase()==='да'?1:0});continue;
+   rows.push({id,name,color:colors[color.toLowerCase()],cost:Number(cost),kind:cardType||(effect==='Нет'?special:effect),effect:effects[effect.toLowerCase()],amount:Number(amount),special:specialLabels[special.toLowerCase()],specialAmount:Number(strength),bonus:bonusId,bonusAmount:Number(bonusStrength),malus:malusId,malusAmount:Number(malusStrength),rarity:rarities[rarity.toLowerCase()],copies:starter.toLowerCase()==='да'?1:0});continue;
   }
   if(columnCount===10){
    const [id,name,color,starter,cost,effect,coefficient,amount,special,rarity]=cells;
