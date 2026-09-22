@@ -5,7 +5,7 @@ import {intro,encounterStory,ending,locations,encounterLocation} from './story.m
 import {starterDeck,createReward,previewReward,confirmReward,rewardResolved} from './rewards.mjs?v=progression-2';
 import {createCampaign,currentOpponent,advanceCampaign} from './campaign.mjs?v=20260921-swing-5';
 import {createGame,play,enemyTurn,limit,paidEffect,cardInHand} from './engine.mjs';
-import {parseCardsMarkdown,effectAmount} from './catalog.mjs?v=20260921-new-art-1';
+import {parseCardsMarkdown,RARITIES,describeParts,effectAmount} from './catalog.mjs?v=20260922-preview-1';
 import {cardFace,applyCardAppearance} from './card-face.mjs?v=20260921-new-art-1';
 import {createSound} from './audio.mjs';
 import {renderStatuses} from './statuses.mjs';
@@ -31,13 +31,13 @@ $('settings-close').onclick=()=>settingsDrawer.close();
 settingsDrawer.addEventListener('close',()=>{$('settings-open').setAttribute('aria-expanded','false');$('settings-open').focus();});
 settingsDrawer.addEventListener('click',event=>{if(event.target===settingsDrawer){const r=settingsDrawer.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)settingsDrawer.close();}});
 function setCardSize(value){
- const size=Math.min(160,Math.max(100,Number(value)||138));
+ const size=Math.min(120,Math.max(80,Number(value)||100));
  document.documentElement.style.setProperty('--card-scale',size/100);
  $('card-size').value=size;$('card-size-value').value=size+'%';
  $('card-size').setAttribute('aria-valuetext',size+' процентов');
 }
-let savedCardSize=138;
-try{savedCardSize=localStorage.getItem('cardgame.cardSize')||138;}catch{}
+let savedCardSize=100;
+try{savedCardSize=localStorage.getItem('cardgame.cardSize')||100;}catch{}
 setCardSize(savedCardSize);
 $('card-size').addEventListener('input',event=>{setCardSize(event.target.value);try{localStorage.setItem('cardgame.cardSize',event.target.value);}catch{}});
 
@@ -51,6 +51,61 @@ let campaign=null, loading=false, catalog=null, collection=[], reward=null;
 let progress=newProgress(),pendingPerk=null,lastGain=null;
 let state=null, selected=null, payment=new Set(), enemyBusy=false;
 let autoEndTimer=null;
+let touchPreviewId=null,lastPointerType='mouse';
+const cardBannerByColor={
+ red:'./assets/card-banners/strength-v1.png',
+ green:'./assets/card-banners/agility-v1.png',
+ blue:'./assets/card-banners/intellect-v2.png',
+ gray:'./assets/card-banners/universal-v1.png'
+};
+function showCardPreview(instance,card,effect){
+ if(enemyBusy)return;
+ const host=$('card-preview-card'),face=document.createElement('div'),banner=document.createElement('img');
+ face.className=`card-preview-art material-card ${card.color}`;applyCardAppearance(face,card);
+ const artIndex=artKeys.includes(instance.key)?artKeys.indexOf(instance.key):effectArt[card.effect];
+ face.style.setProperty('--art-x',`${artIndex%5*25}%`);face.style.setProperty('--art-y',artIndex<5?'0%':'100%');
+ face.innerHTML='<span class="card-art" aria-hidden="true"></span>';
+ banner.className='card-preview-banner';banner.src=cardBannerByColor[card.color]??cardBannerByColor.gray;banner.alt='';banner.setAttribute('aria-hidden','true');
+ host.replaceChildren(face,banner);
+ $('card-preview-name').textContent=card.name;
+ $('card-preview-meta').textContent=`${colors[card.color]} · ${RARITIES[card.rarity]}`;
+ $('card-preview-price').textContent=`Стоимость: ${card.cost}`;
+ const described={...card,displayAmount:effect?.amount??effectAmount(card),specialAmount:effect?.special??card.specialAmount};
+ $('card-preview-description').replaceChildren(...describeParts(described).map(part=>{
+  const row=document.createElement('section');row.className=`card-preview-effect ${part.kind}`;
+  const title=document.createElement('h3');title.textContent=part.title;
+  const body=document.createElement('p');body.textContent=part.text;
+  row.append(title,body);return row;
+ }));
+ $('card-preview').hidden=false;
+}
+function hideCardPreview(force=false){if(touchPreviewId&&!force)return;$('card-preview').hidden=true;$('card-preview-card').replaceChildren();}
+$('card-preview-close').onclick=()=>{touchPreviewId=null;hideCardPreview(true);};
+
+const TUTORIAL_KEY='cardgame.tutorial.v1';
+const tutorialSteps={
+ select:{title:'Выберите карту',text:'Нажмите карту в руке. На телефоне первое касание откроет её описание, второе — выберет.',target:'hand'},
+ payment:{title:'Оплатите розыгрыш',text:'Стоимость в левом верхнем углу — сколько других карт нужно выбрать в оплату.',target:'hand'},
+ boost:{title:'Усиление цветом',text:'Если вся оплата того же цвета, основной эффект станет сильнее. Светлое свечение показывает усиленную карту.',target:'payment-status'},
+ play:{title:'Разыграйте',text:'Когда оплата собрана, нажмите «Разыграть». Сыгранная карта и оплата уйдут в сброс.',target:'play'},
+ end:{title:'Передайте ход',text:'Когда закончите разыгрывать карты, передайте ход. Противник ответит, затем вы доберёте руку.',target:'end'},
+ reward:{title:'Награда за победу',text:'Выберите одну карту и подтвердите выбор. Она сразу войдёт в колоду, а история продолжится без лишней кнопки.',target:'reward'}
+};
+const tutorialOrder=['select','payment','boost','play','end','reward'];
+let tutorialActive=true,tutorialStep='select';
+try{tutorialActive=localStorage.getItem(TUTORIAL_KEY)!=='done';}catch{}
+function finishTutorial(){tutorialActive=false;document.querySelectorAll('.tutorial-target').forEach(node=>node.classList.remove('tutorial-target'));$('tutorial').hidden=true;try{localStorage.setItem(TUTORIAL_KEY,'done');}catch{}}
+function renderTutorial(){
+ document.querySelectorAll('.tutorial-target').forEach(node=>node.classList.remove('tutorial-target'));
+ const step=tutorialSteps[tutorialStep],target=step?$(step.target):null;
+ if(!tutorialActive||document.body.dataset.screen!=='combat'||!step||!target||target.hidden){$('tutorial').hidden=true;return;}
+ target.classList.add('tutorial-target');$('tutorial-progress').textContent=`Обучение · ${tutorialOrder.indexOf(tutorialStep)+1} / ${tutorialOrder.length}`;
+ $('tutorial-title').textContent=step.title;$('tutorial-text').textContent=step.text;$('tutorial-next').textContent=tutorialStep==='reward'?'Готово':'Дальше';$('tutorial').hidden=false;
+}
+function tutorialAdvance(next){if(!tutorialActive)return;tutorialStep=next;if(next==='reward-wait'){$('tutorial').hidden=true;return;}renderTutorial();}
+$('tutorial-skip').onclick=finishTutorial;
+$('tutorial-next').onclick=()=>{const index=tutorialOrder.indexOf(tutorialStep);if(index<0||tutorialStep==='reward')finishTutorial();else tutorialAdvance(tutorialOrder[index+1]);};
+$('tutorial-start').onclick=()=>{tutorialActive=true;tutorialStep='select';try{localStorage.removeItem(TUTORIAL_KEY);}catch{}settingsDrawer.close();renderTutorial();};
 function cancelAutoEnd(){clearTimeout(autoEndTimer);autoEndTimer=null;}
 function scheduleAutoEnd(){
  cancelAutoEnd();
@@ -153,6 +208,7 @@ function renderReward(){
  }
  $('reward').hidden=!visible;
  if(!visible){$('result').after($('replay'));return;}
+ if(tutorialActive&&tutorialStep==='reward-wait')tutorialStep='reward';
  $('reward').append($('replay'));
  $('reward-progress').textContent=`+${lastGain?.gained||0} опыта · Всего ${progress.xp} · Уровень ${progress.level}${lastGain?.levelUp?' — новый уровень!':''}`;
  $('confirm-reward').hidden=rewardResolved(reward);
@@ -178,6 +234,7 @@ function renderReward(){
   return button;
  }));
  renderPerks();
+ renderTutorial();
 }
 function renderPerks(){
  $('perk-choice').hidden=!needsPerk(progress);
@@ -225,8 +282,21 @@ function render(){
     const badge=selected===instance.id?'Разыграть':payment.has(instance.id)?'✓ В оплату':selected?'Выбрать в оплату':state.hand.length<c.cost+1?'Не хватает карт':'Выбрать карту';
     applyCardAppearance(button,c);
     button.classList.toggle('empowered',selected===instance.id&&effect.boosted);
-    button.innerHTML=cardFace(c,{amount:selected===instance.id?effect.amount:effectAmount(c),special:selected===instance.id?effect.special:undefined,state:badge==='Выбрать карту'?'':badge,discount:instance.discount});
-    button.onclick=()=>{if(selected===instance.id){clear();sound.play('cancel');}else if(selected){if(payment.has(instance.id)){payment.delete(instance.id);sound.play('cancel');}else if(payment.size<card.cost){payment.add(instance.id);sound.play(paidEffect(state,selected,[...payment]).boosted?'boost':'pay');}else sound.play('error');}else {selected=instance.id;sound.play('select');}render();};return button;
+    button.innerHTML=cardFace(c,{amount:selected===instance.id?effect.amount:effectAmount(c),special:selected===instance.id?effect.special:undefined,state:badge==='Выбрать карту'?'':badge,discount:instance.discount,compact:true});
+    const previewEffect=()=>selected===instance.id?paidEffect(state,selected,[...payment]):null;
+    button.onpointerdown=event=>{lastPointerType=event.pointerType;};
+    button.onmouseenter=()=>{if(lastPointerType!=='touch')showCardPreview(instance,c,previewEffect());};
+    button.onmouseleave=()=>{if(lastPointerType!=='touch')hideCardPreview();};
+    button.onfocus=()=>showCardPreview(instance,c,previewEffect());
+    button.onblur=()=>{if(lastPointerType!=='touch')hideCardPreview();};
+    button.onclick=()=>{
+     if(lastPointerType==='touch'&&touchPreviewId!==instance.id){touchPreviewId=instance.id;showCardPreview(instance,c,previewEffect());return;}
+     touchPreviewId=null;hideCardPreview(true);
+     if(selected===instance.id){clear();sound.play('cancel');}
+     else if(selected){if(payment.has(instance.id)){payment.delete(instance.id);sound.play('cancel');}else if(payment.size<card.cost){payment.add(instance.id);sound.play(paidEffect(state,selected,[...payment]).boosted?'boost':'pay');if(tutorialStep==='payment')tutorialAdvance('boost');}else sound.play('error');}
+     else {selected=instance.id;sound.play('select');if(tutorialStep==='select')tutorialAdvance(c.cost===0?'play':'payment');}
+     render();
+    };return button;
   }));
   $('payment-status').textContent=card?`Оплата: ${payment.size} из ${card.cost}${effect.boosted?' · '+boostLabel(effect):payment.size===card.cost?' · Обычный эффект':''}`:'Карты в руке — ваш ресурс';
   $('payment-status').classList.toggle('boosted',Boolean(effect?.boosted));
@@ -237,6 +307,7 @@ function render(){
   $('replay').textContent=state.status==='lost'?'Начать заново':last?'Завершить расследование':'Продолжить расследование';
   $('result').textContent=state.status==='won'?(last?`Магистр ордена повержен. Все ${campaign.queue.length} боёв пройдены!`:reward?.selected?'Награда получена. Можно перейти к следующему противнику.':'Выберите награду, чтобы продолжить.'):'Расследование прервано. Начните приключение заново.';
   $('log').replaceChildren(...state.log.map(text=>{const li=document.createElement('li');li.textContent=text;return li;}));
+  renderTutorial();
 }
 async function reset(mode='restart'){
  if(enemyBusy||loading)return;
@@ -248,10 +319,15 @@ async function reset(mode='restart'){
  finally {loading=false;$('replay').disabled=false;$('reset').disabled=false;$('apply').disabled=false;}
 }
 $('skip-reward').onclick=()=>{if(state?.status!=='won'||rewardResolved(reward))return;previewReward(reward,'skip');sound.play('select');render();};
-$('confirm-reward').onclick=()=>{if(state?.status!=='won'||rewardResolved(reward)||!reward.pending)return;collection=confirmReward(collection,reward);sound.play('select');render();if(!needsPerk(progress))$('replay').focus();};
-$('confirm-perk').onclick=()=>{if(!pendingPerk||!needsPerk(progress))return;choosePerk(progress,pendingPerk);pendingPerk=null;render();if(rewardResolved(reward))$('replay').focus();};
+async function continueAfterProgression(){
+ if(needsPerk(progress)){$('perk-options').querySelector('button')?.focus();return;}
+ if(tutorialStep==='reward')finishTutorial();
+ if(campaign.index===campaign.queue.length-1)showStory(ending,'ending');else await reset('continue');
+}
+$('confirm-reward').onclick=async()=>{if(state?.status!=='won'||rewardResolved(reward)||!reward.pending)return;collection=confirmReward(collection,reward);sound.play('select');render();await continueAfterProgression();};
+$('confirm-perk').onclick=async()=>{if(!pendingPerk||!needsPerk(progress))return;choosePerk(progress,pendingPerk);pendingPerk=null;render();if(rewardResolved(reward))await continueAfterProgression();};
 $('replay').onclick=()=>{if(state?.status==='won'&&campaign.index===campaign.queue.length-1)showStory(ending,'ending');else reset('continue');};$('apply').onclick=()=>reset();$('reset').onclick=()=>showCharacterSelect();$('cancel').onclick=()=>{clear();sound.play('cancel');render();};
-$('play').onclick=()=>{const card=cardInHand(state,state.hand.find(c=>c.id===selected));play(state,selected,[...payment]);soundAction(card,state.events);clear();render();showCombatEffects();scheduleAutoEnd();};
+$('play').onclick=()=>{const card=cardInHand(state,state.hand.find(c=>c.id===selected));play(state,selected,[...payment]);soundAction(card,state.events);clear();if(['select','payment','boost','play'].includes(tutorialStep))tutorialAdvance('end');render();showCombatEffects();scheduleAutoEnd();};
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 function revealEnemyCard(card,effect){
  const face=document.createElement('article');face.className=`card ${card.color} enemy-showcase`;
@@ -266,7 +342,7 @@ function revealEnemyCard(card,effect){
 }
 async function runEnemyTurn(){
  if(enemyBusy||!state||state.status!=='playing')return;
- cancelAutoEnd();enemyBusy=true;sound.play('turn');clear();$('combat-effects').replaceChildren();
+ cancelAutoEnd();touchPreviewId=null;hideCardPreview(true);enemyBusy=true;sound.play('turn');clear();if(tutorialStep==='end')tutorialAdvance('reward-wait');$('combat-effects').replaceChildren();
  $('reset').disabled=true;$('apply').disabled=true;
  $('enemy-turn-label').textContent=`Ходит ${$('enemy-name').textContent}`;
  $('enemy-play').hidden=false;render();
@@ -298,6 +374,7 @@ function setScreen(screen){
  $('character-screen').hidden=screen!=='characters';
  document.querySelector('main').inert=screen!=='combat';
  document.querySelector('header').inert=screen!=='combat';
+ renderTutorial();
 }
 function showStory(scene,phase){
  storyPhase=phase;setScreen(phase==='defeat'?'defeat':'story');

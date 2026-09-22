@@ -38,10 +38,11 @@
 
 :root body[data-view] .material-card .card-color,:root body[data-view] #enemy-play .material-card .card-color{top:22px;right:11%;width:12px;height:12px;max-width:none;padding:0;border:0;border-radius:0;background:none;box-shadow:none;font:12px/12px Georgia;text-align:center;text-shadow:0 1px 3px #000}
 /* Larger cards retain exactly the same internal geometry in both actors' hands. */
-:root body[data-view="player"] .hand .card.material-card,:root body[data-view="player"] #enemy-play .card.material-card{zoom:var(--card-scale,1.38);display:block;width:168px;min-width:168px;max-width:168px;flex:0 0 168px;height:270px;min-height:270px;max-height:270px;padding:0}
-:root body[data-view="player"] .table{--fixed-card-height:calc(270px * var(--card-scale,1.38))}
+:root body[data-view="player"] .hand .card.material-card{zoom:var(--card-scale,1);display:block;width:168px;min-width:168px;max-width:168px;flex:0 0 168px;height:270px;min-height:270px;max-height:270px;padding:0}
+:root body[data-view="player"] #enemy-play .card.material-card{zoom:1.08;display:block;width:168px;min-width:168px;max-width:168px;flex:0 0 168px;height:270px;min-height:270px;max-height:270px;padding:0}
+:root body[data-view="player"] .table{--fixed-card-height:calc(270px * var(--card-scale,1))}
 :root body[data-view="player"] .hand{padding-top:34px;padding-bottom:18px}
-@media(max-width:900px){:root body[data-view="player"] .hand .card.material-card + .card.material-card{margin-left:clamp(-112px,calc((100vw - 32px - var(--hand-count) * 168px * var(--card-scale,1.38)) / max(1,var(--hand-count) - 1) / var(--card-scale,1.38)),12px)}}
+@media(max-width:900px){:root body[data-view="player"] .hand .card.material-card + .card.material-card{margin-left:clamp(-112px,calc((100vw - 32px - var(--hand-count) * 168px * var(--card-scale,1)) / max(1,var(--hand-count) - 1) / var(--card-scale,1)),12px)}}
 /* Center the effect number in the space between the inner frame and its text. */
 :root body[data-view] .material-card .card-text,:root body[data-view] #enemy-play .material-card .card-text{display:grid;grid-template-columns:33px minmax(0,1fr);gap:0;align-items:center}
 :root body[data-view] .material-card .card-value,:root body[data-view] #enemy-play .material-card .card-value{display:block;width:33px;min-width:0;text-align:center;align-self:center;line-height:1}
@@ -73,3 +74,8 @@
 :root body[data-view] .material-card:has(.card-special:not(:empty)) .card-text{top:184px;height:51px;min-height:51px;max-height:51px}
 
 :root body[data-view] .material-card.unique-art .card-art::before,:root body[data-view] #enemy-play .material-card.unique-art .card-art::before{background-image:var(--unique-art);background-size:cover;background-position:center}
+
+/* Cards in hand carry only short, consistent effect labels. */
+:root body[data-view="player"] .hand .material-card .card-text.card-text-compact{display:flex;top:188px;height:51px;min-height:51px;max-height:51px;padding:5px 7%;gap:3px;flex-direction:column;align-items:stretch;justify-content:center;border-top:1px solid #ffffff15;border-bottom:1px solid #ffffff15;overflow:hidden}
+:root body[data-view="player"] .hand .material-card .card-chip{display:block;overflow:hidden;color:#eee7d8;font:700 9px/12px system-ui;text-align:center;white-space:nowrap;text-overflow:ellipsis}
+:root body[data-view="player"] .hand .material-card .card-special{display:none}

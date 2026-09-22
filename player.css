@@ -239,3 +239,48 @@
  :root body[data-view="player"] .identity .dodge{position:absolute;top:calc(100% + 8px);left:0}
  :root body[data-view="player"] .foe-id .dodge{left:auto;right:0}
 }
+
+/* One fixed, compact landscape card codex: framed art at left and one paragraph per effect at right. */
+#card-preview[hidden],#tutorial[hidden]{display:none!important}
+#card-preview{position:fixed;z-index:46;left:50%;top:18px;transform:translateX(-50%);display:block;grid-template-columns:none;gap:0;width:min(650px,calc(100vw - 48px));height:min(360px,calc(100vh - 390px));min-height:300px;padding:24px 30px 20px;border:1px solid #c6a763;border-radius:18px;background:radial-gradient(circle at 18% 25%,#4f39242e,transparent 38%),linear-gradient(145deg,#192527 0%,#0b1417 62%,#111c1d 100%);box-shadow:0 0 0 4px #5f4825,0 0 0 6px #d2b56f88,0 20px 60px #000e,inset 0 0 38px #0009;color:#eee2c8;font-family:system-ui,sans-serif;pointer-events:auto;overflow:hidden}
+#card-preview::before{content:"";position:absolute;inset:13px;border:1px solid #ad8a4b88;border-radius:14px;pointer-events:none}
+.card-preview-layout{display:grid;grid-template-columns:170px minmax(0,1fr);gap:28px;height:100%;padding-top:22px;align-items:start}
+#card-preview-card{display:flex;min-width:0;height:auto;flex-direction:column;align-items:center;justify-content:flex-start;gap:0}
+#card-preview-card .card-preview-art{position:relative;width:164px;max-width:100%;aspect-ratio:1/1.08;padding:8px;border:2px solid var(--rarity-color);border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--rarity-color) 42%,white),color-mix(in srgb,var(--rarity-color) 52%,#321d0d) 24%,var(--rarity-color) 52%,color-mix(in srgb,var(--rarity-color) 38%,#1b120b) 76%,color-mix(in srgb,var(--rarity-color) 55%,white));box-shadow:0 0 0 3px #17130f,0 0 0 5px var(--rarity-color),0 12px 28px #000b;overflow:hidden}
+#card-preview-card .card-preview-art::after{content:"";position:absolute;inset:9px;border:1px solid #f6dea155;border-radius:7px;box-shadow:inset 0 0 24px #000b;pointer-events:none}
+#card-preview-card .card-art{display:block!important;position:absolute!important;inset:10px!important;width:calc(100% - 20px)!important;height:calc(100% - 20px)!important;min-height:0!important;border-radius:7px!important;background:#111!important;overflow:hidden!important}
+#card-preview-card .card-art::before{top:50%!important;left:0!important;width:100%!important;height:auto!important;aspect-ratio:1!important;transform:translateY(-50%)!important}
+#card-preview-card .card-art::after{background:linear-gradient(180deg,transparent 62%,#0a0e0ce8)!important}
+.card-preview-banner{position:relative;z-index:2;display:block;width:min(150px,94%);height:150px;margin-top:-15px;object-fit:fill;object-position:top center;filter:drop-shadow(0 9px 9px #000c);pointer-events:none}
+.card-preview-copy{min-width:0;max-height:100%;padding-right:8px;overflow:auto;scrollbar-color:#9f7d43 #121c1d}
+#card-preview-meta{margin:0 0 4px;color:#c3a96f;font:700 10px/1.2 system-ui;letter-spacing:1.6px;text-transform:uppercase}
+#card-preview-price{margin:0 0 9px;color:#aeb8b2;font:700 10px/1.2 system-ui;letter-spacing:.8px;text-transform:uppercase}
+#card-preview-name{margin:0 0 14px;color:#f3dfb1;font:700 clamp(24px,3vw,34px)/1.05 Georgia,serif;text-shadow:0 2px 12px #000}
+#card-preview-description{display:grid;gap:12px}
+.card-preview-effect{position:relative;margin:0;padding:0 0 12px 16px;border-left:2px solid #9f7d43;border-bottom:1px solid #ffffff12}
+.card-preview-effect:last-child{padding-bottom:0;border-bottom:0}
+.card-preview-effect h3{margin:0 0 4px;color:#e8c875;font:700 13px/1.25 system-ui;letter-spacing:.02em}
+.card-preview-effect p{margin:0;color:#d8d5c9;font:12px/1.45 Georgia,serif}
+.card-preview-effect.bonus{border-left-color:#79b98a}.card-preview-effect.malus{border-left-color:#bf6d64}
+#card-preview>.touch-preview-hint{position:absolute;right:36px;bottom:18px;color:#8f9b96;font:11px/1.4 system-ui}.touch-preview-hint{display:none}
+#card-preview-close{position:absolute;z-index:2;right:18px;top:17px;width:34px;height:34px;padding:0;border:1px solid #8f7444;border-radius:50%;background:#182326;color:#ead9b8;font:25px/1 system-ui;pointer-events:auto}
+
+/* Short, opt-out coachmarks. The highlighted control remains usable. */
+#tutorial{position:fixed;z-index:80;right:24px;top:42%;width:min(330px,calc(100vw - 32px));padding:20px;border:1px solid #c5a66e;border-radius:8px;background:#101c1ff5;box-shadow:0 14px 45px #000c;color:#eee2c8;font-family:system-ui,sans-serif}
+#tutorial-progress{margin:0 0 7px;color:#bfa977;font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+#tutorial-title{margin:0 0 9px;font:700 20px/1.2 Georgia,serif;color:#f3e4c5}
+#tutorial-text{margin:0 0 16px;font-size:13px;line-height:1.5;color:#ced3ca}
+#tutorial>div{display:flex;justify-content:flex-end;gap:8px}
+#tutorial button{padding:9px 13px;font-size:12px}
+.tutorial-target{position:relative!important;z-index:79!important;outline:3px solid #f3ce78!important;outline-offset:6px!important;box-shadow:0 0 28px #e6b94c88!important}
+
+@media(max-width:700px){
+ #card-preview{top:8px;width:calc(100vw - 16px);height:min(330px,calc(100vh - 330px));min-height:270px;padding:20px 22px 16px;border-radius:14px}
+ .card-preview-layout{grid-template-columns:30% minmax(0,1fr);gap:22px;padding-top:12px}
+ #card-preview-name{margin-bottom:10px;font-size:clamp(20px,6vw,28px)}#card-preview-meta,#card-preview-price{font-size:8px}
+ .card-preview-banner{width:min(104px,92%);height:104px;margin-top:-11px}
+ #card-preview-description{gap:7px}.card-preview-effect{padding:0 0 7px 10px}.card-preview-effect h3{font-size:11px}.card-preview-effect p{font-size:10px;line-height:1.35}
+ #card-preview>.touch-preview-hint{right:24px;bottom:8px;font-size:8px}
+ #tutorial{top:auto;right:16px;bottom:88px;width:calc(100vw - 32px)}
+}
+@media(pointer:coarse){.touch-preview-hint{display:block}}
