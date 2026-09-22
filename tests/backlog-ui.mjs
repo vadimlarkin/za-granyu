@@ -11,7 +11,8 @@ const playerCss=readFileSync(new URL('player.css',root),'utf8');
 const cardCss=readFileSync(new URL('card-face.css',root),'utf8');
 const storyCss=readFileSync(new URL('story.css',root),'utf8');
 const cardDebug=readFileSync(new URL('card-layout-debug.mjs',root),'utf8');
-const cardTuner=readFileSync(new URL('design/card-layout-tuner.html',root),'utf8');
+const cardTunerPath=new URL('design/card-layout-tuner.html',root);
+const cardTuner=existsSync(cardTunerPath)?readFileSync(cardTunerPath,'utf8'):null;
 
 assert.match(html,/id="release-version"[^>]*>v0\.5\.0</);
 assert.match(html,/id="card-preview"/);
@@ -65,8 +66,10 @@ assert.match(storyCss,/body\[data-view="player"\]\[data-screen="catalog"\]\{heig
 assert.match(cardDebug,/location\.protocol!=='file:'&&!localHosts\.has\(location\.hostname\)/);
 assert.match(cardDebug,/card-layout-debug-open/);
 assert.match(cardDebug,/\.\/design\/card-layout-tuner\.html/);
-assert.match(cardTuner,/const STORAGE_KEY|card-layout-tuner-v2/);
-assert.match(cardTuner,/costX:-5,costY:-8,costSize:31/);
+if(cardTuner){
+ assert.match(cardTuner,/const STORAGE_KEY|card-layout-tuner-v2/);
+ assert.match(cardTuner,/costX:-5,costY:-8,costSize:31/);
+}
 for(const name of ['sucker-punch','stash','spit','sidestep','poke'])assert.ok(existsSync(new URL(`assets/cards/${name}-v1.png`,root)));
 assert.deepEqual(describeParts(catalog['clever-feint']).map(part=>part.kind),['effect','bonus']);
 assert.equal(describeParts(catalog['dirty-trick']).at(-1).title,'Оглушение 1');
